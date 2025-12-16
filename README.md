@@ -123,7 +123,7 @@ kubectl apply -f github-token-secret.yaml
 
 2. **Install Helm chart**:
    ```bash
-   helm install my-workspace oci://ghcr.io/yourorg/charts/happy-claude-coders \
+   helm install my-workspace oci://ghcr.io/yourorg/charts/happy-little-claude-coders \
      --set claude.secretName=claude-oauth
    ```
 
@@ -274,14 +274,14 @@ git clone https://github.com/owner/repo.git /workspace
 
 ```bash
 # Build Docker image
-docker build -t happy-claude-coders:dev .
+docker build -t happy-little-claude-coders:dev .
 
 # Test locally
 docker run -it \
   -e GIT_USER_NAME="Test User" \
   -e GIT_USER_EMAIL="test@example.com" \
   -e WORKSPACE_REPOS="https://github.com/slopus/happy-cli.git" \
-  happy-claude-coders:dev
+  happy-little-claude-coders:dev
 ```
 
 ### Release Process
@@ -310,7 +310,7 @@ happy-little-claude-coders/
 ├── scripts/
 │   ├── entrypoint.sh                  # Container entrypoint
 │   └── clone-repos.sh                 # Repo cloning helper
-├── chart/happy-claude-coders/         # Helm chart
+├── chart/happy-little-claude-coders/  # Helm chart
 │   ├── Chart.yaml
 │   ├── values.yaml
 │   └── templates/

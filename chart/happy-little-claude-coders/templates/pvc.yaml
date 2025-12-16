@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "happy-claude-coders.fullname" . }}-workspace
+  name: {{ include "happy-little-claude-coders.fullname" . }}-workspace
   labels:
-    {{- include "happy-claude-coders.labels" . | nindent 4 }}
+    {{- include "happy-little-claude-coders.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -16,9 +16,9 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "happy-claude-coders.fullname" . }}-gh-config
+  name: {{ include "happy-little-claude-coders.fullname" . }}-gh-config
   labels:
-    {{- include "happy-claude-coders.labels" . | nindent 4 }}
+    {{- include "happy-little-claude-coders.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -29,9 +29,9 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "happy-claude-coders.fullname" . }}-claude-config
+  name: {{ include "happy-little-claude-coders.fullname" . }}-claude-config
   labels:
-    {{- include "happy-claude-coders.labels" . | nindent 4 }}
+    {{- include "happy-little-claude-coders.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce

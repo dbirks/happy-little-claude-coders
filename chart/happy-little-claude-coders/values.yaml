@@ -1,7 +1,7 @@
-# Default values for happy-claude-coders
+# Default values for happy-little-claude-coders
 
 image:
-  repository: ghcr.io/yourorg/happy-claude-coders
+  repository: ghcr.io/yourorg/happy-little-claude-coders
   pullPolicy: IfNotPresent
   tag: "0.1.0"  # x-release-please-version
 

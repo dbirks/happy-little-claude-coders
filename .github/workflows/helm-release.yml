@@ -27,7 +27,7 @@ jobs:
 
       - name: Package Helm chart
         run: |
-          helm package chart/happy-claude-coders --version ${{ steps.version.outputs.VERSION }} --app-version ${{ steps.version.outputs.VERSION }}
+          helm package chart/happy-little-claude-coders --version ${{ steps.version.outputs.VERSION }} --app-version ${{ steps.version.outputs.VERSION }}
 
       - name: Log in to GitHub Container Registry
         run: |
@@ -35,4 +35,4 @@ jobs:
 
       - name: Push Helm chart to GHCR
         run: |
-          helm push happy-claude-coders-${{ steps.version.outputs.VERSION }}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          helm push happy-little-claude-coders-${{ steps.version.outputs.VERSION }}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts

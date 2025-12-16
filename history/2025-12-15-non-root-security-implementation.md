@@ -78,7 +78,7 @@ USER 1001
 
 ### 2. Kubernetes Deployment Changes
 
-Updated `chart/happy-claude-coders/templates/deployment.yaml`:
+Updated `chart/happy-little-claude-coders/templates/deployment.yaml`:
 
 **Added pod-level securityContext:**
 ```yaml
@@ -179,12 +179,12 @@ Added comprehensive security documentation:
 
 1. **Container builds successfully**
    ```bash
-   docker build -t happy-claude-coders:test .
+   docker build -t happy-little-claude-coders:test .
    ```
 
 2. **Container runs as non-root**
    ```bash
-   docker run --rm happy-claude-coders:test id
+   docker run --rm happy-little-claude-coders:test id
    # Expected: uid=1001(coder) gid=1001(coder) groups=1001(coder)
    ```
 

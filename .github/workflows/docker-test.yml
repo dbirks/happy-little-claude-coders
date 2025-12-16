@@ -33,15 +33,15 @@ jobs:
           context: .
           push: false
           tags: |
-            happy-claude-coders:test
-            happy-claude-coders:${{ github.sha }}
+            happy-little-claude-coders:test
+            happy-little-claude-coders:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Test image runs as non-root
         run: |
-          docker build -t happy-claude-coders:test .
-          USER_ID=$(docker run --rm happy-claude-coders:test id -u)
+          docker build -t happy-little-claude-coders:test .
+          USER_ID=$(docker run --rm happy-little-claude-coders:test id -u)
           if [ "$USER_ID" != "1001" ]; then
             echo "ERROR: Container not running as UID 1001 (got $USER_ID)"
             exit 1

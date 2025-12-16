@@ -38,7 +38,7 @@ jobs:
         uses: helm/chart-testing-action@v2.8.0
 
       - name: Run helm lint
-        run: helm lint chart/happy-claude-coders/
+        run: helm lint chart/happy-little-claude-coders/
 
       - name: Run chart-testing (lint)
         run: |
@@ -57,12 +57,12 @@ jobs:
 
       - name: Validate manifests with kubeconform
         run: |
-          helm template test-release chart/happy-claude-coders/ \
+          helm template test-release chart/happy-little-claude-coders/ \
             --set claude.secretName=test-secret | \
             kubeconform -strict -summary -output json
 
       - name: Package Helm chart (no push)
         run: |
-          helm package chart/happy-claude-coders/
+          helm package chart/happy-little-claude-coders/
           echo "✓ Chart packaged successfully"
-          ls -lh happy-claude-coders-*.tgz
+          ls -lh happy-little-claude-coders-*.tgz

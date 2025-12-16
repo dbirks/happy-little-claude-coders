@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "happy-claude-coders.fullname" . }}
+  name: {{ include "happy-little-claude-coders.fullname" . }}
   labels:
-    {{- include "happy-claude-coders.labels" . | nindent 4 }}
+    {{- include "happy-little-claude-coders.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "happy-claude-coders.selectorLabels" . | nindent 6 }}
+      {{- include "happy-little-claude-coders.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "happy-claude-coders.selectorLabels" . | nindent 8 }}
+        {{- include "happy-little-claude-coders.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "happy-claude-coders.serviceAccountName" . }}
+      serviceAccountName: {{ include "happy-little-claude-coders.serviceAccountName" . }}
       {{- if .Values.podSecurityContext.enabled }}
       securityContext:
         {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
@@ -79,7 +79,7 @@ spec:
         - name: WORKSPACE_REPOS
           valueFrom:
             configMapKeyRef:
-              name: {{ include "happy-claude-coders.fullname" . }}
+              name: {{ include "happy-little-claude-coders.fullname" . }}
               key: workspace-repos
         {{- if .Values.github.tokenSecretName }}
         - name: GH_TOKEN
@@ -103,17 +103,17 @@ spec:
         - name: GIT_USER_NAME
           valueFrom:
             configMapKeyRef:
-              name: {{ include "happy-claude-coders.fullname" . }}
+              name: {{ include "happy-little-claude-coders.fullname" . }}
               key: git-user-name
         - name: GIT_USER_EMAIL
           valueFrom:
             configMapKeyRef:
-              name: {{ include "happy-claude-coders.fullname" . }}
+              name: {{ include "happy-little-claude-coders.fullname" . }}
               key: git-user-email
         - name: WORKSPACE_REPOS
           valueFrom:
             configMapKeyRef:
-              name: {{ include "happy-claude-coders.fullname" . }}
+              name: {{ include "happy-little-claude-coders.fullname" . }}
               key: workspace-repos
         {{- if .Values.claude.secretName }}
         - name: CLAUDE_CODE_OAUTH_TOKEN
@@ -135,17 +135,17 @@ spec:
       - name: workspace
         {{- if .Values.workspace.persistent }}
         persistentVolumeClaim:
-          claimName: {{ include "happy-claude-coders.fullname" . }}-workspace
+          claimName: {{ include "happy-little-claude-coders.fullname" . }}-workspace
         {{- else }}
         emptyDir:
           sizeLimit: {{ .Values.workspace.storageSize }}
         {{- end }}
       - name: gh-config
         persistentVolumeClaim:
-          claimName: {{ include "happy-claude-coders.fullname" . }}-gh-config
+          claimName: {{ include "happy-little-claude-coders.fullname" . }}-gh-config
       - name: claude-config
         persistentVolumeClaim:
-          claimName: {{ include "happy-claude-coders.fullname" . }}-claude-config
+          claimName: {{ include "happy-little-claude-coders.fullname" . }}-claude-config
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

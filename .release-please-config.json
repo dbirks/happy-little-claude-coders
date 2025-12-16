@@ -3,8 +3,8 @@
   "packages": {
     ".": {
       "extra-files": [
-        "chart/happy-claude-coders/Chart.yaml",
-        "chart/happy-claude-coders/values.yaml"
+        "chart/happy-little-claude-coders/Chart.yaml",
+        "chart/happy-little-claude-coders/values.yaml"
       ]
     }
   }
