@@ -26,8 +26,11 @@ RUN curl -fsSL https://claude.ai/install.sh | bash
 # Install pnpm
 RUN npm install -g pnpm@9.15.2
 
-# Install Happy CLI
-RUN pnpm install -g happy-coder
+# Setup pnpm and install Happy CLI
+RUN pnpm setup && \
+    export PNPM_HOME="/root/.local/share/pnpm" && \
+    export PATH="$PNPM_HOME:$PATH" && \
+    pnpm install -g happy-coder
 
 # Create workspace directory
 RUN mkdir -p /workspace /scripts
