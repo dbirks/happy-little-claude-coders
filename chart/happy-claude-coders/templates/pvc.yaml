@@ -25,3 +25,16 @@ spec:
   resources:
     requests:
       storage: {{ .Values.github.configPvcSize }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "happy-claude-coders.fullname" . }}-claude-config
+  labels:
+    {{- include "happy-claude-coders.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.claude.configPvcSize }}
