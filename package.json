@@ -1,0 +1,19 @@
+{
+  "name": "happy-claude-coders",
+  "version": "0.1.0",
+  "description": "Containerized AI coding workspaces with Claude Code and Happy CLI",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourorg/happy-claude-coders"
+  },
+  "keywords": [
+    "claude",
+    "ai",
+    "kubernetes",
+    "workspace",
+    "happy-cli"
+  ],
+  "author": "",
+  "license": "MIT"
+}
