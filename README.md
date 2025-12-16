@@ -1,4 +1,10 @@
+<div align="center">
+
+<img src="docs/img/logo.png" alt="Happy Little Claude Coders Logo" width="400">
+
 # Happy Little Claude Coders
+
+</div>
 
 Containerized AI coding workspaces with Claude Code CLI and Happy CLI, designed for Kubernetes deployment.
 
