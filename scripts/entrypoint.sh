@@ -23,17 +23,17 @@ if gh auth status &>/dev/null; then
         /usr/local/bin/clone-repos
     fi
 else
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "  GitHub Authentication Required"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
-    echo "To authenticate with GitHub, run:"
-    echo "  $ gh auth login"
-    echo ""
-    echo "After authentication, clone repos with:"
-    echo "  $ clone-repos"
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "  GitHub Authentication Required" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "" >&2
+    echo "To authenticate with GitHub, run:" >&2
+    echo "  $ gh auth login" >&2
+    echo "" >&2
+    echo "After authentication, clone repos with:" >&2
+    echo "  $ clone-repos" >&2
+    echo "" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
 fi
 
 # Execute the provided command or start a shell
