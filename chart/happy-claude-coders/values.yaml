@@ -27,12 +27,17 @@ github:
   # GitHub authentication (interactive device flow)
   # PVC size for ~/.config/gh/ persistence
   configPvcSize: 100Mi
+  # Optional: Name of secret containing GitHub token for private repos
+  # Secret should have a 'token' key with the GitHub personal access token
+  tokenSecretName: ""
 
 claude:
   # Claude Code authentication (OAuth token)
   # Name of secret containing CLAUDE_CODE_OAUTH_TOKEN
   secretName: ""
   # If empty, you must create the secret manually
+  # PVC size for ~/.claude/ persistence
+  configPvcSize: 100Mi
 
 resources:
   # Resource limits and requests

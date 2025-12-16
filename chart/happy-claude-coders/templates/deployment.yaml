@@ -19,6 +19,70 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "happy-claude-coders.serviceAccountName" . }}
+      initContainers:
+      - name: clone-repos
+        image: alpine/git:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+
+          # Parse WORKSPACE_REPOS environment variable
+          REPOS="${WORKSPACE_REPOS}"
+
+          if [ -z "$REPOS" ]; then
+            echo "No repositories specified in WORKSPACE_REPOS"
+            exit 0
+          fi
+
+          # Count number of repositories
+          REPO_COUNT=$(echo "$REPOS" | tr ' ' '\n' | grep -v '^$' | wc -l)
+
+          echo "Found $REPO_COUNT repository/repositories to clone"
+
+          # Configure git to use token if available
+          if [ -n "$GH_TOKEN" ]; then
+            echo "Configuring git to use GitHub token for authentication"
+            git config --global credential.helper store
+            echo "https://oauth2:${GH_TOKEN}@github.com" > ~/.git-credentials
+          fi
+
+          # Clone repositories
+          if [ "$REPO_COUNT" -eq 1 ]; then
+            # Single repository: clone directly into /workspace
+            echo "Cloning single repository into /workspace"
+            git clone "$REPOS" /workspace
+          else
+            # Multiple repositories: clone into subdirectories
+            echo "Cloning multiple repositories into subdirectories"
+            cd /workspace
+            for REPO in $REPOS; do
+              # Extract repo name from URL (e.g., https://github.com/user/repo.git -> repo)
+              REPO_NAME=$(basename "$REPO" .git)
+              echo "Cloning $REPO into /workspace/$REPO_NAME"
+              git clone "$REPO" "$REPO_NAME"
+            done
+          fi
+
+          echo "Repository cloning completed successfully"
+        env:
+        - name: WORKSPACE_REPOS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "happy-claude-coders.fullname" . }}
+              key: workspace-repos
+        {{- if .Values.github.tokenSecretName }}
+        - name: GH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.github.tokenSecretName }}
+              key: token
+        {{- end }}
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
       containers:
       - name: workspace
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -51,6 +115,8 @@ spec:
           mountPath: /workspace
         - name: gh-config
           mountPath: /root/.config/gh
+        - name: claude-config
+          mountPath: /root/.claude
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
       volumes:
@@ -65,6 +131,9 @@ spec:
       - name: gh-config
         persistentVolumeClaim:
           claimName: {{ include "happy-claude-coders.fullname" . }}-gh-config
+      - name: claude-config
+        persistentVolumeClaim:
+          claimName: {{ include "happy-claude-coders.fullname" . }}-claude-config
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
