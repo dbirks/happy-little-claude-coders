@@ -60,3 +60,9 @@ jobs:
           helm template test-release chart/happy-claude-coders/ \
             --set claude.secretName=test-secret | \
             kubeconform -strict -summary -output json
+
+      - name: Package Helm chart (no push)
+        run: |
+          helm package chart/happy-claude-coders/
+          echo "✓ Chart packaged successfully"
+          ls -lh happy-claude-coders-*.tgz
