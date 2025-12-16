@@ -60,6 +60,37 @@ bd close bd-42 --reason "Completed" --json
 5. **Complete**: `bd close <id> --reason "Done"`
 6. **Commit together**: Always commit the `.beads/issues.jsonl` file together with the code changes so issue state stays in sync with code state
 
+### Parallel Async Subagents for Maximum Efficiency
+
+**Use parallel async subagents often** to maximize productivity and minimize wait time.
+
+**When to use parallel agents:**
+- Reading multiple independent files for analysis
+- Running multiple independent grep/search operations
+- Executing independent git commands (e.g., `git status` and `git diff`)
+- Performing multiple web searches or API calls
+- Any set of operations with no dependencies between them
+
+**How to launch parallel agents:**
+Launch multiple tool calls in a single message block when tasks are independent. For example, when you need to read three files and run a search, launch all four operations together rather than sequentially.
+
+**Benefits:**
+- Faster task completion through concurrent execution
+- Better resource utilization
+- Reduced overall latency
+- More efficient workflow for complex multi-step tasks
+
+**Examples of good parallelization:**
+- Analyzing a codebase: Read multiple source files + search for patterns in parallel
+- Pre-commit checks: Run `git status`, `git diff`, and `git log` together
+- Research tasks: Multiple web searches or file reads simultaneously
+- Code review: Read changed files + search for related code in parallel
+
+**When NOT to parallelize:**
+- Operations with dependencies (e.g., read file before editing it)
+- Sequential workflows where later steps depend on earlier results
+- Operations that modify state (commits, file writes) that must happen in order
+
 ### Auto-Sync
 
 bd automatically syncs with git:
