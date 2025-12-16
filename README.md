@@ -20,20 +20,108 @@ Containerized AI coding workspaces with Claude Code CLI and Happy CLI, designed 
 - Claude subscription (Pro/Max plan)
 - GitHub account
 
+### Creating Secrets
+
+Before installing the Helm chart, you need to create Kubernetes secrets for authentication.
+
+#### 1. Claude OAuth Token Secret (Required)
+
+The Claude OAuth token allows the workspace to use your Claude subscription. Generate this token on a machine where you're already authenticated with Claude:
+
+```bash
+# Generate the OAuth token (requires authenticated Claude CLI)
+claude setup-token
+```
+
+This will output a token that looks like: `sk_ant_oauth_...`
+
+**Create the secret in Kubernetes:**
+
+```bash
+kubectl create secret generic claude-oauth \
+  --from-literal=token=sk_ant_oauth_YOUR_TOKEN_HERE
+```
+
+**Alternative: YAML manifest**
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: claude-oauth
+type: Opaque
+stringData:
+  token: sk_ant_oauth_YOUR_TOKEN_HERE
+```
+
+Apply with:
+```bash
+kubectl apply -f claude-oauth-secret.yaml
+```
+
+#### 2. GitHub Token Secret (Optional)
+
+If you want to automatically clone private repositories without interactive authentication, you can create a GitHub token secret. Otherwise, you'll use the interactive device flow authentication (recommended for most users).
+
+**Generate a GitHub Personal Access Token:**
+1. Go to https://github.com/settings/tokens
+2. Click "Generate new token (classic)"
+3. Select scopes: `repo` (full repository access)
+4. Generate and copy the token
+
+**Create the secret in Kubernetes:**
+
+```bash
+kubectl create secret generic github-token \
+  --from-literal=token=ghp_YOUR_GITHUB_TOKEN_HERE
+```
+
+**Alternative: YAML manifest**
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-token
+type: Opaque
+stringData:
+  token: ghp_YOUR_GITHUB_TOKEN_HERE
+```
+
+Apply with:
+```bash
+kubectl apply -f github-token-secret.yaml
+```
+
+**Note:** The GitHub token is optional. If not provided, you'll authenticate interactively using `gh auth login` (device flow) after the workspace starts.
+
+#### Best Practices for Secret Management
+
+- **Never commit secrets to version control**: Always use `.gitignore` for secret YAML files
+- **Use namespace isolation**: Create secrets in the same namespace as your workspaces
+- **Rotate tokens regularly**: Update secrets periodically for security
+- **Limit token permissions**: Use minimal required scopes for GitHub tokens
+- **Verify secret creation**:
+  ```bash
+  # Check if secret exists
+  kubectl get secret claude-oauth
+
+  # Verify secret content (decode base64)
+  kubectl get secret claude-oauth -o jsonpath='{.data.token}' | base64 -d
+  ```
+- **Use RBAC**: Restrict access to secrets using Kubernetes RBAC policies
+- **Consider external secret management**: For production, use tools like:
+  - HashiCorp Vault
+  - AWS Secrets Manager
+  - Azure Key Vault
+  - Google Secret Manager
+  - Sealed Secrets
+
 ### Installation
 
-1. **Generate Claude OAuth token** on an authenticated machine:
-   ```bash
-   claude setup-token
-   ```
+1. **Create secrets** (see [Creating Secrets](#creating-secrets) section above)
 
-2. **Create Claude secret** in Kubernetes:
-   ```bash
-   kubectl create secret generic claude-oauth \
-     --from-literal=token=<your-claude-oauth-token>
-   ```
-
-3. **Install Helm chart**:
+2. **Install Helm chart**:
    ```bash
    helm install my-workspace oci://ghcr.io/yourorg/charts/happy-claude-coders \
      --set claude.secretName=claude-oauth
@@ -41,23 +129,23 @@ Containerized AI coding workspaces with Claude Code CLI and Happy CLI, designed 
 
 ### First-Time Setup
 
-1. **Attach to the workspace pod**:
+3. **Attach to the workspace pod**:
    ```bash
    kubectl exec -it deployment/my-workspace -- bash
    ```
 
-2. **Authenticate with GitHub** (device flow):
+4. **Authenticate with GitHub** (device flow):
    ```bash
    gh auth login
    ```
    Follow the prompts to complete authentication in your browser.
 
-3. **Clone repositories**:
+5. **Clone repositories**:
    ```bash
    clone-repos
    ```
 
-4. **Start coding**!
+6. **Start coding**!
    Your repositories are now cloned in `/workspace` and GitHub credentials are persisted.
 
 ## Configuration
