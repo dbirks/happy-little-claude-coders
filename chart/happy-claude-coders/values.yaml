@@ -3,7 +3,7 @@
 image:
   repository: ghcr.io/yourorg/happy-claude-coders
   pullPolicy: IfNotPresent
-  tag: "0.1.0"  # x-release-please-version
+  tag: "0.2.0"  # x-release-please-version
 
 imagePullSecrets: []
 nameOverride: ""
