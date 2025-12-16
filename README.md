@@ -185,15 +185,59 @@ resources:
   requests:
     cpu: 500m
     memory: 1Gi
+
+# Security contexts (non-root user configuration)
+podSecurityContext:
+  enabled: true
+  fsGroup: 1001
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+    - ALL
 ```
 
 ## Architecture
+
+### Security
+
+This project follows container security best practices:
+
+- **Non-root user**: All containers run as UID/GID 1001 (user `coder`)
+- **No privilege escalation**: `allowPrivilegeEscalation: false` prevents gaining additional privileges
+- **Dropped capabilities**: All Linux capabilities are dropped by default
+- **Security context enforcement**: Pod-level and container-level security contexts configured
+- **fsGroup**: Ensures proper file permissions for volumes (GID 1001)
+
+The security configuration follows the Bitnami pattern and is compatible with:
+- Kubernetes Pod Security Standards (Restricted)
+- OpenShift Security Context Constraints
+- CIS Kubernetes Benchmark recommendations
+
+To disable security contexts (not recommended):
+```yaml
+podSecurityContext:
+  enabled: false
+containerSecurityContext:
+  enabled: false
+initContainerSecurityContext:
+  enabled: false
+```
 
 ### Authentication Strategy
 
 **GitHub (Per-Workspace)**:
 - Interactive `gh auth login` via device flow
-- Credentials persist on PVC at `/root/.config/gh/`
+- Credentials persist on PVC at `/home/coder/.config/gh/`
 - Each workspace has its own GitHub identity
 
 **Claude (Shared)**:
@@ -206,7 +250,8 @@ resources:
 | Mount Point | Type | Purpose |
 |------------|------|---------|
 | `/workspace` | emptyDir | Code (ephemeral, cloned fresh) |
-| `/root/.config/gh` | PVC | GitHub credentials (persistent) |
+| `/home/coder/.config/gh` | PVC | GitHub credentials (persistent) |
+| `/home/coder/.claude` | PVC | Claude credentials (persistent) |
 
 ### Repo Cloning
 

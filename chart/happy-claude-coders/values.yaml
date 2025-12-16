@@ -48,6 +48,40 @@ resources:
     cpu: 500m
     memory: 1Gi
 
+# Security context for the pod (applies to all containers)
+# Following Bitnami pattern with UID/GID 1001
+podSecurityContext:
+  enabled: true
+  fsGroup: 1001
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+
+# Security context for the main workspace container
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false  # Set to false because we need to write to /tmp and other locations
+  capabilities:
+    drop:
+    - ALL
+
+# Security context for the init container (clone-repos)
+# Must match pod-level settings for proper file permissions
+initContainerSecurityContext:
+  enabled: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false  # Set to false because git clone needs to write
+  capabilities:
+    drop:
+    - ALL
+
 nodeSelector: {}
 
 tolerations: []

@@ -19,10 +19,18 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "happy-claude-coders.serviceAccountName" . }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
       initContainers:
       - name: clone-repos
         image: alpine/git:latest
         imagePullPolicy: IfNotPresent
+        {{- if .Values.initContainerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.initContainerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
         command:
         - /bin/sh
         - -c
@@ -87,6 +95,10 @@ spec:
       - name: workspace
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
         env:
         - name: GIT_USER_NAME
           valueFrom:
@@ -114,9 +126,9 @@ spec:
         - name: workspace
           mountPath: /workspace
         - name: gh-config
-          mountPath: /root/.config/gh
+          mountPath: /home/coder/.config/gh
         - name: claude-config
-          mountPath: /root/.claude
+          mountPath: /home/coder/.claude
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
       volumes:

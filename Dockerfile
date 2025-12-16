@@ -38,6 +38,19 @@ COPY scripts/clone-repos.sh /usr/local/bin/clone-repos
 
 RUN chmod +x /scripts/entrypoint.sh /usr/local/bin/clone-repos
 
+# Create non-root user with UID 1001 (following Bitnami pattern)
+# Using 1001 instead of 1000 to avoid conflicts with host users
+RUN groupadd --gid 1001 coder && \
+    useradd --uid 1001 --gid 1001 --shell /bin/bash --create-home coder
+
+# Create directories that the user needs write access to
+RUN mkdir -p /home/coder/.config/gh /home/coder/.claude && \
+    chown -R 1001:1001 /home/coder && \
+    chown -R 1001:1001 /workspace
+
+# Switch to non-root user
+USER 1001
+
 # Set working directory
 WORKDIR /workspace
 
