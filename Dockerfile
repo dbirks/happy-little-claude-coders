@@ -23,15 +23,17 @@ RUN (curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | 
 # Install Claude Code CLI
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
-# Install pnpm and set up global bin directory
-RUN npm install -g pnpm@9.15.2
+# Enable Corepack and set up pnpm environment
+RUN corepack enable
 
 # Set pnpm environment variables
-ENV PNPM_HOME="/root/.local/share/pnpm"
+ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT="0"
 
-# Create pnpm global bin directory and install Happy CLI
-RUN mkdir -p $PNPM_HOME && \
+# Prepare pnpm using Corepack and install Happy CLI
+RUN corepack prepare pnpm@10.26.0 --activate && \
+    mkdir -p $PNPM_HOME && \
     pnpm install -g happy-coder
 
 # Create workspace directory
