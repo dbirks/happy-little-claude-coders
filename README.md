@@ -59,11 +59,38 @@ Apply with:
 kubectl apply -f claude-oauth-secret.yaml
 ```
 
-#### 2. GitHub Token Secret (Optional)
+#### 2. GitHub Token Secret (Optional - For InitContainer Auto-Clone)
 
 If you want to automatically clone private repositories without interactive authentication, you can create a GitHub token secret. Otherwise, you'll use the interactive device flow authentication (recommended for most users).
 
-**Generate a GitHub Personal Access Token:**
+**⚠️ Important:** This token is ONLY used by the initContainer for automated cloning. For better security, we recommend using the **interactive device flow** (gh auth login) which happens after the pod starts.
+
+**Generate a Fine-Grained Personal Access Token (Recommended):**
+
+Fine-grained tokens provide repository-specific access with minimal permissions, following the principle of least privilege.
+
+1. Go to https://github.com/settings/personal-access-tokens/new
+2. Configure the token:
+   - **Token name**: "Workspace Auto-Clone Token"
+   - **Expiration**: 90 days (recommended)
+   - **Repository access**: Select "Only select repositories"
+   - **Select repositories**: Choose ONLY the repositories in your workspace
+   - **Repository permissions**:
+     - Contents: `read` (for read-only cloning)
+     - Metadata: `read` (automatically required)
+     - OR Contents: `read and write` (if you need to push commits)
+3. Click "Generate token"
+4. Copy the token immediately (starts with `github_pat_`)
+
+**Alternative: Template URL (pre-filled form)**
+
+```
+https://github.com/settings/personal-access-tokens/new?name=Workspace+Token&description=Token+for+workspace+repositories&expires_in=90&contents=read&metadata=read
+```
+
+**Classic Token (Not Recommended):**
+
+If you must use a classic token:
 1. Go to https://github.com/settings/tokens
 2. Click "Generate new token (classic)"
 3. Select scopes: `repo` (full repository access)
@@ -72,6 +99,11 @@ If you want to automatically clone private repositories without interactive auth
 **Create the secret in Kubernetes:**
 
 ```bash
+# For fine-grained token (starts with github_pat_)
+kubectl create secret generic github-token \
+  --from-literal=token=github_pat_YOUR_TOKEN_HERE
+
+# For classic token (starts with ghp_)
 kubectl create secret generic github-token \
   --from-literal=token=ghp_YOUR_GITHUB_TOKEN_HERE
 ```
@@ -85,7 +117,7 @@ metadata:
   name: github-token
 type: Opaque
 stringData:
-  token: ghp_YOUR_GITHUB_TOKEN_HERE
+  token: github_pat_YOUR_TOKEN_HERE  # or ghp_ for classic tokens
 ```
 
 Apply with:
@@ -93,7 +125,7 @@ Apply with:
 kubectl apply -f github-token-secret.yaml
 ```
 
-**Note:** The GitHub token is optional. If not provided, you'll authenticate interactively using `gh auth login` (device flow) after the workspace starts.
+**Note:** The GitHub token is optional and ONLY needed for initContainer auto-clone. **Recommended workflow:** Skip this secret and authenticate interactively using `gh auth login` (device flow) after the workspace starts. This provides better security and flexibility.
 
 #### Best Practices for Secret Management
 
@@ -140,13 +172,17 @@ kubectl apply -f github-token-secret.yaml
    ```
    Follow the prompts to complete authentication in your browser.
 
-5. **Clone repositories**:
-   ```bash
-   clone-repos
-   ```
+5. **Repositories auto-clone automatically**!
+   Once you complete GitHub authentication, the workspace automatically detects the authentication and clones your repositories in the background. You don't need to run `clone-repos` manually.
+
+   **What happens:**
+   - Background watcher detects when `gh auth login` completes
+   - Automatically runs `gh auth setup-git` to configure git credentials
+   - Clones all configured repositories to `/workspace`
+   - Skips repositories that already exist (safe for pod restarts)
 
 6. **Start coding**!
-   Your repositories are now cloned in `/workspace` and GitHub credentials are persisted.
+   Your repositories are now cloned in `/workspace` and GitHub credentials are persisted in the PVC.
 
 ## Configuration
 
