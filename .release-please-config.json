@@ -1,0 +1,11 @@
+{
+  "release-type": "node",
+  "packages": {
+    ".": {
+      "extra-files": [
+        "chart/happy-claude-coders/Chart.yaml",
+        "chart/happy-claude-coders/values.yaml"
+      ]
+    }
+  }
+}
