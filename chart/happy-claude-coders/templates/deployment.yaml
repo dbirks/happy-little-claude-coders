@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "happy-claude-coders.fullname" . }}
+  labels:
+    {{- include "happy-claude-coders.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "happy-claude-coders.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "happy-claude-coders.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "happy-claude-coders.serviceAccountName" . }}
+      containers:
+      - name: workspace
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: GIT_USER_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "happy-claude-coders.fullname" . }}
+              key: git-user-name
+        - name: GIT_USER_EMAIL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "happy-claude-coders.fullname" . }}
+              key: git-user-email
+        - name: WORKSPACE_REPOS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "happy-claude-coders.fullname" . }}
+              key: workspace-repos
+        {{- if .Values.claude.secretName }}
+        - name: CLAUDE_CODE_OAUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.claude.secretName }}
+              key: token
+        {{- end }}
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+        - name: gh-config
+          mountPath: /root/.config/gh
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+      volumes:
+      - name: workspace
+        {{- if .Values.workspace.persistent }}
+        persistentVolumeClaim:
+          claimName: {{ include "happy-claude-coders.fullname" . }}-workspace
+        {{- else }}
+        emptyDir:
+          sizeLimit: {{ .Values.workspace.storageSize }}
+        {{- end }}
+      - name: gh-config
+        persistentVolumeClaim:
+          claimName: {{ include "happy-claude-coders.fullname" . }}-gh-config
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

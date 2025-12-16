@@ -1,0 +1,56 @@
+# Default values for happy-claude-coders
+
+image:
+  repository: ghcr.io/yourorg/happy-claude-coders
+  pullPolicy: IfNotPresent
+  tag: "0.1.0"  # x-release-please-version
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+workspace:
+  # List of repositories to clone (space-separated URLs in env var)
+  repos:
+    - "https://github.com/slopus/happy-cli.git"
+  # Storage size for workspace (emptyDir)
+  storageSize: 10Gi
+  # Persistent storage for workspace (default: false, uses emptyDir)
+  persistent: false
+
+git:
+  # Git identity configuration
+  userName: "Claude Bot"
+  userEmail: "claude-bot@example.com"
+
+github:
+  # GitHub authentication (interactive device flow)
+  # PVC size for ~/.config/gh/ persistence
+  configPvcSize: 100Mi
+
+claude:
+  # Claude Code authentication (OAuth token)
+  # Name of secret containing CLAUDE_CODE_OAUTH_TOKEN
+  secretName: ""
+  # If empty, you must create the secret manually
+
+resources:
+  # Resource limits and requests
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""

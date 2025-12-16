@@ -1,0 +1,27 @@
+{{- if .Values.workspace.persistent }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "happy-claude-coders.fullname" . }}-workspace
+  labels:
+    {{- include "happy-claude-coders.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.workspace.storageSize }}
+---
+{{- end }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "happy-claude-coders.fullname" . }}-gh-config
+  labels:
+    {{- include "happy-claude-coders.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.github.configPvcSize }}
