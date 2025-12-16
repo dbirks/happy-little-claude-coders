@@ -10,6 +10,28 @@ if [ -n "$GIT_USER_EMAIL" ]; then
     git config --global user.email "$GIT_USER_EMAIL"
 fi
 
+# Function to check if repos should be cloned
+should_clone_repos() {
+    if [ -z "$WORKSPACE_REPOS" ]; then
+        return 1  # No repos configured
+    fi
+
+    REPO_COUNT=$(echo "$WORKSPACE_REPOS" | wc -w)
+    if [ "$REPO_COUNT" -eq 1 ]; then
+        # Single repo: check if /workspace/.git exists
+        [ ! -d "/workspace/.git" ]
+    else
+        # Multiple repos: check if at least one is missing
+        for repo in $WORKSPACE_REPOS; do
+            repo_name=$(basename -s .git "$repo")
+            if [ ! -d "/workspace/$repo_name" ]; then
+                return 0  # At least one repo missing
+            fi
+        done
+        return 1  # All repos exist
+    fi
+}
+
 # Check if GitHub CLI is authenticated
 if gh auth status &>/dev/null; then
     echo "✓ GitHub authenticated"
@@ -17,10 +39,12 @@ if gh auth status &>/dev/null; then
     # Setup git credential helper
     gh auth setup-git 2>/dev/null || true
 
-    # Auto-clone repos if WORKSPACE_REPOS is set and /workspace is empty
-    if [ -n "$WORKSPACE_REPOS" ] && [ ! "$(ls -A /workspace 2>/dev/null)" ]; then
+    # Auto-clone repos if needed
+    if should_clone_repos; then
         echo "Cloning repositories..."
         /usr/local/bin/clone-repos
+    else
+        echo "✓ Repositories already present"
     fi
 else
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
@@ -30,10 +54,25 @@ else
     echo "To authenticate with GitHub, run:" >&2
     echo "  $ gh auth login" >&2
     echo "" >&2
-    echo "After authentication, clone repos with:" >&2
+    echo "After authentication, repos will auto-clone in the background." >&2
+    echo "Or manually clone with:" >&2
     echo "  $ clone-repos" >&2
     echo "" >&2
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+
+    # Start background watcher that auto-clones after authentication
+    if [ -n "$WORKSPACE_REPOS" ]; then
+        (
+            echo "Waiting for GitHub authentication..." >&2
+            while ! gh auth status &>/dev/null; do
+                sleep 5
+            done
+            echo "" >&2
+            echo "✓ GitHub authenticated - auto-cloning repositories..." >&2
+            gh auth setup-git 2>/dev/null || true
+            /usr/local/bin/clone-repos
+        ) &
+    fi
 fi
 
 # Execute the provided command or start a shell

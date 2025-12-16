@@ -15,16 +15,24 @@ REPO_COUNT=$(echo "$WORKSPACE_REPOS" | wc -w)
 
 if [ "$REPO_COUNT" -eq 1 ]; then
     # Single repo: clone directly into /workspace
-    echo "Cloning single repository into /workspace..."
-    git clone "$WORKSPACE_REPOS" /workspace
-    echo "✓ Repository cloned successfully"
+    if [ ! -d "/workspace/.git" ]; then
+        echo "Cloning single repository into /workspace..."
+        git clone "$WORKSPACE_REPOS" /workspace
+        echo "✓ Repository cloned successfully"
+    else
+        echo "✓ Repository already exists in /workspace"
+    fi
 else
     # Multiple repos: clone each into its own subdirectory
     echo "Cloning $REPO_COUNT repositories..."
     for repo in $WORKSPACE_REPOS; do
         repo_name=$(basename -s .git "$repo")
-        echo "  → $repo_name"
-        git clone "$repo" "/workspace/$repo_name"
+        if [ ! -d "/workspace/$repo_name" ]; then
+            echo "  → $repo_name (cloning)"
+            git clone "$repo" "/workspace/$repo_name"
+        else
+            echo "  → $repo_name (already exists)"
+        fi
     done
-    echo "✓ All repositories cloned successfully"
+    echo "✓ Repository check complete"
 fi
