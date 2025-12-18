@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.1.0...v1.0.0) (2025-12-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* Redesigned Helm chart to support multiple workspaces in a single HelmRelease.
+
+### Features
+
+* support multiple workspaces in single HelmRelease ([f1c3af4](https://github.com/dbirks/happy-little-claude-coders/commit/f1c3af4f0b1913a95d6424a97cf37edac0eea67e))
+
 ## [0.1.0](https://github.com/dbirks/happy-little-claude-coders/compare/happy-little-claude-coders-v0.0.1...happy-little-claude-coders-v0.1.0) (2025-12-18)
 
 
