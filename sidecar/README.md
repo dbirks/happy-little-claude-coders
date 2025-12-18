@@ -9,7 +9,52 @@ This sidecar container automatically refreshes GitHub App installation tokens fo
 - **Official libraries**: Uses `bradleyfalzon/ghinstallation` for token generation
 - **Secure storage**: Writes tokens to tmpfs (in-memory) volume
 - **Retry logic**: Exponential backoff on failures
+- **Graceful shutdown**: Handles SIGTERM/SIGINT signals properly
 - **Minimal footprint**: Distroless base image, runs as non-root (UID 65532)
+
+## Code Structure
+
+The sidecar is organized into idiomatic Go modules for clarity and maintainability:
+
+```
+sidecar/
+├── main.go      # Entry point, orchestration, signal handling
+├── config.go    # Configuration loading and parsing
+├── token.go     # Token generation and GitHub API client
+├── writer.go    # Atomic file writes for token storage
+├── go.mod       # Go module definition
+├── go.sum       # Dependency checksums
+├── Dockerfile   # Container image definition
+└── README.md    # This file
+```
+
+### main.go
+Entry point and orchestration:
+- Package-level documentation
+- Signal handling (SIGTERM, SIGINT)
+- Graceful shutdown with context cancellation
+- Main refresh loop with context awareness
+
+### config.go
+Configuration management:
+- `Config` struct with all settings
+- `LoadConfig()` reads from environment and mounted secrets
+- `parseRepositoryNames()` extracts repo names from URLs
+- Well-documented constants for paths and defaults
+
+### token.go
+Token generation logic:
+- `TokenGenerator` struct encapsulating GitHub App client
+- `NewTokenGenerator()` creates authenticated client
+- `Generate()` creates repository-scoped installation tokens
+- `Backoff` helper for exponential backoff retry logic
+
+### writer.go
+Atomic file operations:
+- `TokenWriter` struct for safe token writes
+- `Write()` implements atomic write-temp-then-rename pattern
+- Proper file permissions (0600) for security
+- Directory creation with appropriate permissions
 
 ## Building
 

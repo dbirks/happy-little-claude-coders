@@ -1,193 +1,172 @@
+// Package main implements a GitHub App installation token refresh sidecar.
+//
+// This sidecar runs alongside a main application container in Kubernetes,
+// continuously refreshing GitHub App installation tokens and writing them
+// to a shared volume. The main container can then use these tokens for
+// GitHub API access.
+//
+// # Architecture
+//
+// The sidecar follows this pattern:
+//  1. Load configuration from mounted secrets and environment variables
+//  2. Create a GitHub App transport using ghinstallation library
+//  3. Generate repository-scoped installation tokens
+//  4. Write tokens atomically to shared tmpfs volume
+//  5. Refresh tokens every 45 minutes (before 1-hour expiration)
+//  6. Handle errors with exponential backoff retry logic
+//
+// # Token Scoping
+//
+// Tokens can be scoped to specific repositories via the WORKSPACE_REPOS
+// environment variable. This provides workspace isolation when multiple
+// workspaces share the same GitHub App installation.
+//
+// Without repository scoping, tokens have access to all repositories
+// in the installation.
+//
+// # Security
+//
+// - Runs as non-root user (UID 65532 in distroless image)
+// - Private keys are mounted from Kubernetes secrets
+// - Tokens are written to tmpfs (memory-backed, never persisted to disk)
+// - Token files have 0600 permissions (owner read/write only)
+// - Atomic writes prevent partial token exposure
+//
+// # Configuration
+//
+// Environment variables:
+//   - WORKSPACE_REPOS: Space-separated repository URLs to scope tokens to
+//   - REFRESH_INTERVAL_MINUTES: Token refresh interval in minutes (default: 45)
+//
+// Mounted secrets (from Kubernetes secret):
+//   - /var/run/secrets/github-app/app-id: GitHub App ID
+//   - /var/run/secrets/github-app/installation-id: Installation ID
+//   - /var/run/secrets/github-app/private-key: Private key in PEM format
+//
+// # Graceful Shutdown
+//
+// The sidecar handles SIGTERM and SIGINT signals for graceful shutdown,
+// completing any in-flight token generation before exiting.
 package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
+	"os/signal"
+	"syscall"
 	"time"
-
-	"github.com/bradleyfalzon/ghinstallation/v2"
-	"github.com/google/go-github/v66/github"
-)
-
-const (
-	tokenPath         = "/var/run/github/token"
-	appIDPath         = "/var/run/secrets/github-app/app-id"
-	installationIDPath = "/var/run/secrets/github-app/installation-id"
-	privateKeyPath    = "/var/run/secrets/github-app/private-key"
 )
 
 func main() {
+	// Configure logging with timestamps and source file locations
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("GitHub App token refresh sidecar starting...")
 
-	// Read configuration
-	appID, err := readInt64File(appIDPath)
+	// Load configuration from environment and mounted secrets
+	cfg, err := LoadConfig()
 	if err != nil {
-		log.Fatalf("Failed to read app-id: %v", err)
+		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	installationID, err := readInt64File(installationIDPath)
+	// Log configuration (excluding sensitive data)
+	log.Printf("App ID: %d", cfg.AppID)
+	log.Printf("Installation ID: %d", cfg.InstallationID)
+	log.Printf("Token path: %s", cfg.TokenPath)
+	log.Printf("Refresh interval: %v", cfg.RefreshInterval)
+
+	if len(cfg.Repositories) > 0 {
+		log.Printf("Repository scoping enabled: %v", cfg.Repositories)
+	} else {
+		log.Println("WARNING: No repository scoping configured - token will have access to all repos in installation")
+	}
+
+	// Create token generator
+	generator, err := NewTokenGenerator(cfg)
 	if err != nil {
-		log.Fatalf("Failed to read installation-id: %v", err)
+		log.Fatalf("Failed to create token generator: %v", err)
 	}
 
-	privateKey, err := os.ReadFile(privateKeyPath)
-	if err != nil {
-		log.Fatalf("Failed to read private-key: %v", err)
+	// Create token writer
+	writer := NewTokenWriter(cfg.TokenPath)
+
+	// Set up graceful shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Handle shutdown signals
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		sig := <-sigChan
+		log.Printf("Received signal %v, shutting down gracefully...", sig)
+		cancel()
+	}()
+
+	// Run the token refresh loop
+	if err := run(ctx, generator, writer, cfg.RefreshInterval); err != nil {
+		log.Fatalf("Token refresh loop failed: %v", err)
 	}
 
-	// Get workspace repos from environment
-	reposEnv := os.Getenv("WORKSPACE_REPOS")
-	if reposEnv == "" {
-		log.Println("WARNING: WORKSPACE_REPOS not set, token will have access to all repos")
-	}
+	log.Println("Sidecar shut down successfully")
+}
 
-	// Parse repository names from URLs
-	repos := parseRepoNames(reposEnv)
-	log.Printf("Repository scoping: %v", repos)
-
-	// Get refresh interval
-	refreshInterval := getRefreshInterval()
-	log.Printf("Token refresh interval: %v", refreshInterval)
-
-	// Create GitHub App transport
-	itr, err := ghinstallation.New(http.DefaultTransport, appID, installationID, privateKey)
-	if err != nil {
-		log.Fatalf("Failed to create GitHub App transport: %v", err)
-	}
-
-	// Main refresh loop with retry logic
-	backoff := time.Second
-	maxBackoff := 5 * time.Minute
+// run executes the main token refresh loop with exponential backoff retry logic.
+//
+// The loop runs until the context is cancelled (via SIGTERM/SIGINT) or a fatal
+// error occurs. On each iteration:
+//  1. Generate a new installation token
+//  2. Write it atomically to the shared volume
+//  3. Sleep until the next refresh interval
+//
+// If token generation or writing fails, the loop retries with exponential
+// backoff up to a maximum of 5 minutes between attempts.
+func run(ctx context.Context, generator *TokenGenerator, writer *TokenWriter, refreshInterval time.Duration) error {
+	backoff := NewBackoff()
 
 	for {
-		token, err := generateToken(itr, repos)
-		if err != nil {
-			log.Printf("ERROR: Failed to generate token: %v", err)
-			log.Printf("Retrying in %v...", backoff)
-			time.Sleep(backoff)
-			backoff *= 2
-			if backoff > maxBackoff {
-				backoff = maxBackoff
-			}
-			continue
+		select {
+		case <-ctx.Done():
+			// Context cancelled, exit gracefully
+			return nil
+		default:
 		}
 
-		// Reset backoff on success
-		backoff = time.Second
+		// Generate token with context
+		token, err := generator.Generate(ctx)
+		if err != nil {
+			log.Printf("ERROR: Failed to generate token: %v", err)
+			log.Printf("Retrying in %v...", backoff.Duration())
+
+			// Sleep with context awareness for cancellation
+			select {
+			case <-time.After(backoff.Duration()):
+				backoff.Increase()
+				continue
+			case <-ctx.Done():
+				return nil
+			}
+		}
+
+		// Token generation succeeded, reset backoff
+		backoff.Reset()
 
 		// Write token to shared volume
-		if err := writeToken(token); err != nil {
+		if err := writer.Write(token); err != nil {
 			log.Printf("ERROR: Failed to write token: %v", err)
+			// Don't retry immediately, wait for next refresh cycle
 			continue
 		}
 
 		log.Printf("✓ Token refreshed successfully (expires in ~60 minutes)")
 
-		// Sleep until next refresh
-		time.Sleep(refreshInterval)
-	}
-}
-
-// generateToken creates a repository-scoped installation token
-func generateToken(itr *ghinstallation.AppsTransport, repos []string) (string, error) {
-	ctx := context.Background()
-	client := github.NewClient(&http.Client{Transport: itr})
-
-	opts := &github.InstallationTokenOptions{}
-	if len(repos) > 0 {
-		opts.Repositories = repos
-	}
-
-	token, _, err := client.Apps.CreateInstallationToken(ctx, itr.InstallationID, opts)
-	if err != nil {
-		return "", fmt.Errorf("create installation token: %w", err)
-	}
-
-	return token.GetToken(), nil
-}
-
-// writeToken writes the token to the shared volume atomically
-func writeToken(token string) error {
-	// Create directory if it doesn't exist
-	dir := filepath.Dir(tokenPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("create token directory: %w", err)
-	}
-
-	// Write to temp file first, then rename (atomic)
-	tmpPath := tokenPath + ".tmp"
-	if err := os.WriteFile(tmpPath, []byte(token), 0600); err != nil {
-		return fmt.Errorf("write temp token: %w", err)
-	}
-
-	if err := os.Rename(tmpPath, tokenPath); err != nil {
-		return fmt.Errorf("rename token file: %w", err)
-	}
-
-	return nil
-}
-
-// parseRepoNames extracts repository names from git URLs
-// Example: "https://github.com/owner/repo.git" -> "repo"
-func parseRepoNames(reposEnv string) []string {
-	if reposEnv == "" {
-		return nil
-	}
-
-	urls := strings.Fields(reposEnv)
-	repos := make([]string, 0, len(urls))
-
-	for _, url := range urls {
-		// Extract repo name from URL
-		// https://github.com/owner/repo.git -> repo
-		parts := strings.Split(url, "/")
-		if len(parts) < 2 {
-			continue
-		}
-		repoName := parts[len(parts)-1]
-		repoName = strings.TrimSuffix(repoName, ".git")
-		if repoName != "" {
-			repos = append(repos, repoName)
+		// Sleep until next refresh, with context awareness
+		select {
+		case <-time.After(refreshInterval):
+			// Time to refresh
+		case <-ctx.Done():
+			// Shutdown requested
+			return nil
 		}
 	}
-
-	return repos
-}
-
-// readInt64File reads a file and parses it as int64
-func readInt64File(path string) (int64, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return 0, err
-	}
-
-	value, err := strconv.ParseInt(strings.TrimSpace(string(data)), 10, 64)
-	if err != nil {
-		return 0, fmt.Errorf("parse %s: %w", path, err)
-	}
-
-	return value, nil
-}
-
-// getRefreshInterval returns the refresh interval from env var or default
-func getRefreshInterval() time.Duration {
-	intervalStr := os.Getenv("REFRESH_INTERVAL_MINUTES")
-	if intervalStr == "" {
-		return 45 * time.Minute
-	}
-
-	minutes, err := strconv.Atoi(intervalStr)
-	if err != nil {
-		log.Printf("WARNING: Invalid REFRESH_INTERVAL_MINUTES, using default 45")
-		return 45 * time.Minute
-	}
-
-	return time.Duration(minutes) * time.Minute
 }
