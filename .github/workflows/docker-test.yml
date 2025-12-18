@@ -41,7 +41,8 @@ jobs:
       - name: Test image runs as non-root
         run: |
           docker build -t happy-little-claude-coders:test .
-          USER_ID=$(docker run --rm happy-little-claude-coders:test id -u)
+          # Override entrypoint to directly run id command
+          USER_ID=$(docker run --rm --entrypoint id happy-little-claude-coders:test -u)
           if [ "$USER_ID" != "1001" ]; then
             echo "ERROR: Container not running as UID 1001 (got $USER_ID)"
             exit 1
