@@ -1,39 +1,51 @@
 # Default values for happy-little-claude-coders
+# This chart supports multiple independent Claude Code workspaces in a single HelmRelease
 
 image:
   repository: ghcr.io/yourorg/happy-little-claude-coders
   pullPolicy: IfNotPresent
-  tag: "0.1.0"  # x-release-please-version
+  tag: "0.2.0"  # x-release-please-version
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-workspace:
-  # List of repositories to clone (space-separated URLs in env var)
-  repos:
-    - "https://github.com/slopus/happy-cli.git"
-  # Storage size for workspace (emptyDir)
-  storageSize: 10Gi
-  # Persistent storage for workspace (default: false, uses emptyDir)
-  persistent: false
+# Multiple workspaces configuration
+# Each workspace gets its own pod/deployment with dedicated PVCs
+workspaces:
+  - name: example
+    # List of repositories to clone for this workspace
+    repos:
+      - "https://github.com/slopus/happy-cli.git"
+    # Storage size for workspace files (emptyDir or PVC)
+    storageSize: 10Gi
+    # Use persistent storage (PVC) instead of emptyDir
+    persistent: false
+    # Optional: Override default resources for this workspace
+    # resources:
+    #   limits:
+    #     cpu: 2000m
+    #     memory: 4Gi
+    #   requests:
+    #     cpu: 500m
+    #     memory: 1Gi
 
+# Global git identity configuration (applies to all workspaces)
 git:
-  # Git identity configuration
   userName: "Claude Bot"
   userEmail: "claude-bot@example.com"
 
+# Global GitHub authentication settings
 github:
-  # GitHub authentication (interactive device flow)
-  # PVC size for ~/.config/gh/ persistence
+  # PVC size for ~/.config/gh/ persistence per workspace
   configPvcSize: 100Mi
   # Optional: Name of secret containing GitHub token for private repos
   # Secret should have a 'token' key with the GitHub personal access token
   tokenSecretName: ""
 
+# GitHub App authentication (alternative to interactive auth)
 githubApp:
-  # GitHub App authentication (alternative to interactive auth)
-  # Provides workspace-specific repository-scoped tokens with automatic refresh
+  # Enable GitHub App authentication with automatic token refresh
   enabled: false
   # Name of secret containing GitHub App credentials
   # Secret must have keys: app-id, installation-id, private-key
@@ -46,16 +58,17 @@ githubApp:
   # Uses official ghinstallation library for token generation
   sidecarImage: ghcr.io/yourorg/github-token-sidecar:latest
 
+# Global Claude Code authentication settings
 claude:
-  # Claude Code authentication (OAuth token)
   # Name of secret containing CLAUDE_CODE_OAUTH_TOKEN
-  secretName: ""
   # If empty, you must create the secret manually
-  # PVC size for ~/.claude/ persistence
+  secretName: ""
+  # PVC size for ~/.claude/ persistence per workspace
   configPvcSize: 100Mi
 
+# Default resource limits and requests for workspaces
+# Can be overridden per workspace in workspaces[].resources
 resources:
-  # Resource limits and requests
   limits:
     cpu: 2000m
     memory: 4Gi
@@ -63,7 +76,7 @@ resources:
     cpu: 500m
     memory: 1Gi
 
-# Security context for the pod (applies to all containers)
+# Security context for pods (applies to all containers)
 # Following Bitnami pattern with UID/GID 1001
 podSecurityContext:
   enabled: true
@@ -72,19 +85,19 @@ podSecurityContext:
   runAsGroup: 1001
   runAsNonRoot: true
 
-# Security context for the main workspace container
+# Security context for main workspace containers
 containerSecurityContext:
   enabled: true
   runAsUser: 1001
   runAsGroup: 1001
   runAsNonRoot: true
   allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: false  # Set to false because we need to write to /tmp and other locations
+  readOnlyRootFilesystem: false  # Need write access to /tmp and other locations
   capabilities:
     drop:
     - ALL
 
-# Security context for the init container (clone-repos)
+# Security context for init containers (clone-repos)
 # Must match pod-level settings for proper file permissions
 initContainerSecurityContext:
   enabled: true
@@ -92,7 +105,7 @@ initContainerSecurityContext:
   runAsGroup: 1001
   runAsNonRoot: true
   allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: false  # Set to false because git clone needs to write
+  readOnlyRootFilesystem: false  # git clone needs write access
   capabilities:
     drop:
     - ALL

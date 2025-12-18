@@ -1,36 +1,44 @@
+{{- range $workspace := .Values.workspaces }}
+{{- $workspaceName := $workspace.name }}
+{{- $workspaceResources := $workspace.resources | default $.Values.resources }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "happy-little-claude-coders.fullname" . }}
+  name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}
   labels:
-    {{- include "happy-little-claude-coders.labels" . | nindent 4 }}
+    {{- include "happy-little-claude-coders.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: workspace
+    workspace: {{ $workspaceName }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "happy-little-claude-coders.selectorLabels" . | nindent 6 }}
+      {{- include "happy-little-claude-coders.selectorLabels" $ | nindent 6 }}
+      workspace: {{ $workspaceName }}
   template:
     metadata:
       labels:
-        {{- include "happy-little-claude-coders.selectorLabels" . | nindent 8 }}
+        {{- include "happy-little-claude-coders.selectorLabels" $ | nindent 8 }}
+        workspace: {{ $workspaceName }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with $.Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "happy-little-claude-coders.serviceAccountName" . }}
-      {{- if .Values.podSecurityContext.enabled }}
+      serviceAccountName: {{ include "happy-little-claude-coders.serviceAccountName" $ }}
+      {{- if $.Values.podSecurityContext.enabled }}
       securityContext:
-        {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+        {{- omit $.Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
       initContainers:
-      {{- if .Values.githubApp.enabled }}
+      {{- if $.Values.githubApp.enabled }}
       - name: generate-initial-token
-        image: {{ .Values.githubApp.sidecarImage }}
+        image: {{ $.Values.githubApp.sidecarImage }}
         imagePullPolicy: IfNotPresent
-        {{- if .Values.initContainerSecurityContext.enabled }}
+        {{- if $.Values.initContainerSecurityContext.enabled }}
         securityContext:
-          {{- omit .Values.initContainerSecurityContext "enabled" | toYaml | nindent 10 }}
+          {{- omit $.Values.initContainerSecurityContext "enabled" | toYaml | nindent 10 }}
         {{- end }}
         command:
         - /bin/sh
@@ -55,7 +63,7 @@ spec:
         - name: WORKSPACE_REPOS
           valueFrom:
             configMapKeyRef:
-              name: {{ include "happy-little-claude-coders.fullname" . }}
+              name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}
               key: workspace-repos
         - name: REFRESH_INTERVAL_MINUTES
           value: "999999"
@@ -76,9 +84,9 @@ spec:
       - name: clone-repos
         image: alpine/git:latest
         imagePullPolicy: IfNotPresent
-        {{- if .Values.initContainerSecurityContext.enabled }}
+        {{- if $.Values.initContainerSecurityContext.enabled }}
         securityContext:
-          {{- omit .Values.initContainerSecurityContext "enabled" | toYaml | nindent 10 }}
+          {{- omit $.Values.initContainerSecurityContext "enabled" | toYaml | nindent 10 }}
         {{- end }}
         command:
         - /bin/sh
@@ -138,52 +146,52 @@ spec:
         - name: WORKSPACE_REPOS
           valueFrom:
             configMapKeyRef:
-              name: {{ include "happy-little-claude-coders.fullname" . }}
+              name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}
               key: workspace-repos
-        {{- if .Values.github.tokenSecretName }}
+        {{- if $.Values.github.tokenSecretName }}
         - name: GH_TOKEN
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.github.tokenSecretName }}
+              name: {{ $.Values.github.tokenSecretName }}
               key: token
         {{- end }}
         volumeMounts:
         - name: workspace
           mountPath: /workspace
-        {{- if .Values.githubApp.enabled }}
+        {{- if $.Values.githubApp.enabled }}
         - name: github-token
           mountPath: /var/run/github
           readOnly: true
         {{- end }}
       containers:
       - name: workspace
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        {{- if .Values.containerSecurityContext.enabled }}
+        image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+        imagePullPolicy: {{ $.Values.image.pullPolicy }}
+        {{- if $.Values.containerSecurityContext.enabled }}
         securityContext:
-          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+          {{- omit $.Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
         {{- end }}
         env:
         - name: GIT_USER_NAME
           valueFrom:
             configMapKeyRef:
-              name: {{ include "happy-little-claude-coders.fullname" . }}
+              name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}
               key: git-user-name
         - name: GIT_USER_EMAIL
           valueFrom:
             configMapKeyRef:
-              name: {{ include "happy-little-claude-coders.fullname" . }}
+              name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}
               key: git-user-email
         - name: WORKSPACE_REPOS
           valueFrom:
             configMapKeyRef:
-              name: {{ include "happy-little-claude-coders.fullname" . }}
+              name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}
               key: workspace-repos
-        {{- if .Values.claude.secretName }}
+        {{- if $.Values.claude.secretName }}
         - name: CLAUDE_CODE_OAUTH_TOKEN
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.claude.secretName }}
+              name: {{ $.Values.claude.secretName }}
               key: token
         {{- end }}
         volumeMounts:
@@ -193,29 +201,29 @@ spec:
           mountPath: /home/coder/.config/gh
         - name: claude-config
           mountPath: /home/coder/.claude
-        {{- if .Values.githubApp.enabled }}
+        {{- if $.Values.githubApp.enabled }}
         - name: github-token
           mountPath: /var/run/github
           readOnly: true
         {{- end }}
         resources:
-          {{- toYaml .Values.resources | nindent 10 }}
-      {{- if .Values.githubApp.enabled }}
+          {{- toYaml $workspaceResources | nindent 10 }}
+      {{- if $.Values.githubApp.enabled }}
       - name: github-token-sidecar
-        image: {{ .Values.githubApp.sidecarImage }}
+        image: {{ $.Values.githubApp.sidecarImage }}
         imagePullPolicy: IfNotPresent
-        {{- if .Values.containerSecurityContext.enabled }}
+        {{- if $.Values.containerSecurityContext.enabled }}
         securityContext:
-          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+          {{- omit $.Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
         {{- end }}
         env:
         - name: WORKSPACE_REPOS
           valueFrom:
             configMapKeyRef:
-              name: {{ include "happy-little-claude-coders.fullname" . }}
+              name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}
               key: workspace-repos
         - name: REFRESH_INTERVAL_MINUTES
-          value: "{{ .Values.githubApp.refreshIntervalMinutes }}"
+          value: "{{ $.Values.githubApp.refreshIntervalMinutes }}"
         volumeMounts:
         - name: github-token
           mountPath: /var/run/github
@@ -232,27 +240,27 @@ spec:
       {{- end }}
       volumes:
       - name: workspace
-        {{- if .Values.workspace.persistent }}
+        {{- if $workspace.persistent }}
         persistentVolumeClaim:
-          claimName: {{ include "happy-little-claude-coders.fullname" . }}-workspace
+          claimName: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}-workspace
         {{- else }}
         emptyDir:
-          sizeLimit: {{ .Values.workspace.storageSize }}
+          sizeLimit: {{ $workspace.storageSize | default "10Gi" }}
         {{- end }}
       - name: gh-config
         persistentVolumeClaim:
-          claimName: {{ include "happy-little-claude-coders.fullname" . }}-gh-config
+          claimName: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}-gh-config
       - name: claude-config
         persistentVolumeClaim:
-          claimName: {{ include "happy-little-claude-coders.fullname" . }}-claude-config
-      {{- if .Values.githubApp.enabled }}
+          claimName: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}-claude-config
+      {{- if $.Values.githubApp.enabled }}
       - name: github-token
         emptyDir:
           medium: Memory
           sizeLimit: 1Mi
       - name: github-app-secret
         secret:
-          secretName: {{ .Values.githubApp.secretName }}
+          secretName: {{ $.Values.githubApp.secretName }}
           items:
           - key: app-id
             path: app-id
@@ -261,15 +269,16 @@ spec:
           - key: private-key
             path: private-key
       {{- end }}
-      {{- with .Values.nodeSelector }}
+      {{- with $.Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with $.Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with $.Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}

@@ -1,40 +1,50 @@
-{{- if .Values.workspace.persistent }}
+{{- range $workspace := .Values.workspaces }}
+{{- $workspaceName := $workspace.name }}
+{{- if $workspace.persistent }}
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "happy-little-claude-coders.fullname" . }}-workspace
+  name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}-workspace
   labels:
-    {{- include "happy-little-claude-coders.labels" . | nindent 4 }}
+    {{- include "happy-little-claude-coders.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: workspace
+    workspace: {{ $workspaceName }}
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.workspace.storageSize }}
----
+      storage: {{ $workspace.storageSize | default "10Gi" }}
 {{- end }}
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ include "happy-little-claude-coders.fullname" . }}-gh-config
-  labels:
-    {{- include "happy-little-claude-coders.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: {{ .Values.github.configPvcSize }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "happy-little-claude-coders.fullname" . }}-claude-config
+  name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}-gh-config
   labels:
-    {{- include "happy-little-claude-coders.labels" . | nindent 4 }}
+    {{- include "happy-little-claude-coders.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: workspace
+    workspace: {{ $workspaceName }}
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.claude.configPvcSize }}
+      storage: {{ $.Values.github.configPvcSize }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}-claude-config
+  labels:
+    {{- include "happy-little-claude-coders.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: workspace
+    workspace: {{ $workspaceName }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $.Values.claude.configPvcSize }}
+{{- end }}

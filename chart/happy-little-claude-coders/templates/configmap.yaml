@@ -1,10 +1,16 @@
+{{- range $workspace := .Values.workspaces }}
+{{- $workspaceName := $workspace.name }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "happy-little-claude-coders.fullname" . }}
+  name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}
   labels:
-    {{- include "happy-little-claude-coders.labels" . | nindent 4 }}
+    {{- include "happy-little-claude-coders.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: workspace
+    workspace: {{ $workspaceName }}
 data:
-  git-user-name: {{ .Values.git.userName | quote }}
-  git-user-email: {{ .Values.git.userEmail | quote }}
-  workspace-repos: {{ join " " .Values.workspace.repos | quote }}
+  git-user-name: {{ $.Values.git.userName | quote }}
+  git-user-email: {{ $.Values.git.userEmail | quote }}
+  workspace-repos: {{ join " " $workspace.repos | quote }}
+{{- end }}
