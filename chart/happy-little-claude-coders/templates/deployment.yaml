@@ -24,6 +24,55 @@ spec:
         {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
       initContainers:
+      {{- if .Values.githubApp.enabled }}
+      - name: generate-initial-token
+        image: {{ .Values.githubApp.sidecarImage }}
+        imagePullPolicy: IfNotPresent
+        {{- if .Values.initContainerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.initContainerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Generating initial GitHub App token..."
+          /usr/local/bin/github-token-sidecar &
+          PID=$!
+          # Wait for token file to be created (up to 30 seconds)
+          for i in $(seq 1 30); do
+            if [ -f /var/run/github/token ]; then
+              echo "✓ Initial token generated successfully"
+              kill $PID 2>/dev/null || true
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "ERROR: Timeout waiting for token generation"
+          kill $PID 2>/dev/null || true
+          exit 1
+        env:
+        - name: WORKSPACE_REPOS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "happy-little-claude-coders.fullname" . }}
+              key: workspace-repos
+        - name: REFRESH_INTERVAL_MINUTES
+          value: "999999"
+        volumeMounts:
+        - name: github-token
+          mountPath: /var/run/github
+        - name: github-app-secret
+          mountPath: /var/run/secrets/github-app
+          readOnly: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+      {{- end }}
       - name: clone-repos
         image: alpine/git:latest
         imagePullPolicy: IfNotPresent
@@ -51,10 +100,20 @@ spec:
           echo "Found $REPO_COUNT repository/repositories to clone"
 
           # Configure git to use token if available
-          if [ -n "$GH_TOKEN" ]; then
-            echo "Configuring git to use GitHub token for authentication"
+          TOKEN=""
+
+          # Check for GitHub App token first (from sidecar)
+          if [ -f /var/run/github/token ]; then
+            echo "Using GitHub App token for authentication"
+            TOKEN=$(cat /var/run/github/token)
+          elif [ -n "$GH_TOKEN" ]; then
+            echo "Using GitHub personal access token for authentication"
+            TOKEN="$GH_TOKEN"
+          fi
+
+          if [ -n "$TOKEN" ]; then
             git config --global credential.helper store
-            echo "https://oauth2:${GH_TOKEN}@github.com" > ~/.git-credentials
+            echo "https://oauth2:${TOKEN}@github.com" > ~/.git-credentials
           fi
 
           # Clone repositories
@@ -91,6 +150,11 @@ spec:
         volumeMounts:
         - name: workspace
           mountPath: /workspace
+        {{- if .Values.githubApp.enabled }}
+        - name: github-token
+          mountPath: /var/run/github
+          readOnly: true
+        {{- end }}
       containers:
       - name: workspace
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -129,8 +193,43 @@ spec:
           mountPath: /home/coder/.config/gh
         - name: claude-config
           mountPath: /home/coder/.claude
+        {{- if .Values.githubApp.enabled }}
+        - name: github-token
+          mountPath: /var/run/github
+          readOnly: true
+        {{- end }}
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
+      {{- if .Values.githubApp.enabled }}
+      - name: github-token-sidecar
+        image: {{ .Values.githubApp.sidecarImage }}
+        imagePullPolicy: IfNotPresent
+        {{- if .Values.containerSecurityContext.enabled }}
+        securityContext:
+          {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
+        env:
+        - name: WORKSPACE_REPOS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "happy-little-claude-coders.fullname" . }}
+              key: workspace-repos
+        - name: REFRESH_INTERVAL_MINUTES
+          value: "{{ .Values.githubApp.refreshIntervalMinutes }}"
+        volumeMounts:
+        - name: github-token
+          mountPath: /var/run/github
+        - name: github-app-secret
+          mountPath: /var/run/secrets/github-app
+          readOnly: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+      {{- end }}
       volumes:
       - name: workspace
         {{- if .Values.workspace.persistent }}
@@ -146,6 +245,22 @@ spec:
       - name: claude-config
         persistentVolumeClaim:
           claimName: {{ include "happy-little-claude-coders.fullname" . }}-claude-config
+      {{- if .Values.githubApp.enabled }}
+      - name: github-token
+        emptyDir:
+          medium: Memory
+          sizeLimit: 1Mi
+      - name: github-app-secret
+        secret:
+          secretName: {{ .Values.githubApp.secretName }}
+          items:
+          - key: app-id
+            path: app-id
+          - key: installation-id
+            path: installation-id
+          - key: private-key
+            path: private-key
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

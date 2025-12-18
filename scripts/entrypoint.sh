@@ -32,8 +32,29 @@ should_clone_repos() {
     fi
 }
 
-# Check if GitHub CLI is authenticated
-if gh auth status &>/dev/null; then
+# Check for GitHub App token (from sidecar)
+if [ -f /var/run/github/token ]; then
+    echo "Using GitHub App authentication..."
+
+    # Authenticate gh CLI with token
+    if ! gh auth status &>/dev/null; then
+        cat /var/run/github/token | gh auth login --with-token
+        echo "✓ GitHub App authenticated"
+    else
+        echo "✓ GitHub authenticated"
+    fi
+
+    # Setup git credential helper
+    gh auth setup-git 2>/dev/null || true
+
+    # Auto-clone repos if needed
+    if should_clone_repos; then
+        echo "Cloning repositories..."
+        /usr/local/bin/clone-repos
+    else
+        echo "✓ Repositories already present"
+    fi
+elif gh auth status &>/dev/null; then
     echo "✓ GitHub authenticated"
 
     # Setup git credential helper

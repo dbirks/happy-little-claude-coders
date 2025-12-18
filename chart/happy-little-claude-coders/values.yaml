@@ -31,6 +31,21 @@ github:
   # Secret should have a 'token' key with the GitHub personal access token
   tokenSecretName: ""
 
+githubApp:
+  # GitHub App authentication (alternative to interactive auth)
+  # Provides workspace-specific repository-scoped tokens with automatic refresh
+  enabled: false
+  # Name of secret containing GitHub App credentials
+  # Secret must have keys: app-id, installation-id, private-key
+  # See history/GITHUB_APP_SETUP_GUIDE.md for setup instructions
+  secretName: ""
+  # Token refresh interval in minutes (tokens expire after 60 minutes)
+  # Recommended: 45 minutes (refresh before expiration)
+  refreshIntervalMinutes: 45
+  # Sidecar container image for token refresh
+  # Uses official ghinstallation library for token generation
+  sidecarImage: ghcr.io/yourorg/github-token-sidecar:latest
+
 claude:
   # Claude Code authentication (OAuth token)
   # Name of secret containing CLAUDE_CODE_OAUTH_TOKEN
