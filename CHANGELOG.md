@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.1.0...v1.0.0) (2025-12-18)
+## [0.2.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.1.0...v0.2.0) (2025-12-18)
 
 
 ### ⚠ BREAKING CHANGES
