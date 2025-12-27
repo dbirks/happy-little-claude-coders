@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.2.0...v0.2.1) (2025-12-27)
+
+
+### Bug Fixes
+
+* make config PVCs conditional on workspace persistence ([a632a20](https://github.com/dbirks/happy-little-claude-coders/commit/a632a2060bf134cc433b542b758291510e8f532d))
+
 ## [0.2.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.1.0...v0.2.0) (2025-12-18)
 
 
