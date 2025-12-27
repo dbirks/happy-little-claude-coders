@@ -1,6 +1,6 @@
 {
   "name": "happy-little-claude-coders",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Containerized AI coding workspaces with Claude Code and Happy CLI",
   "private": true,
   "packageManager": "pnpm@10.26.0",
