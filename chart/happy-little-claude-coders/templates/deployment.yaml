@@ -248,11 +248,21 @@ spec:
           sizeLimit: {{ $workspace.storageSize | default "10Gi" }}
         {{- end }}
       - name: gh-config
+        {{- if $workspace.persistent }}
         persistentVolumeClaim:
           claimName: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}-gh-config
+        {{- else }}
+        emptyDir:
+          sizeLimit: {{ $.Values.github.configPvcSize | default "100Mi" }}
+        {{- end }}
       - name: claude-config
+        {{- if $workspace.persistent }}
         persistentVolumeClaim:
           claimName: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}-claude-config
+        {{- else }}
+        emptyDir:
+          sizeLimit: {{ $.Values.claude.configPvcSize | default "100Mi" }}
+        {{- end }}
       {{- if $.Values.githubApp.enabled }}
       - name: github-token
         emptyDir:

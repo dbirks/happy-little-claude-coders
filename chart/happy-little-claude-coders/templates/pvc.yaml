@@ -17,6 +17,7 @@ spec:
     requests:
       storage: {{ $workspace.storageSize | default "10Gi" }}
 {{- end }}
+{{- if $workspace.persistent }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -47,4 +48,5 @@ spec:
   resources:
     requests:
       storage: {{ $.Values.claude.configPvcSize }}
+{{- end }}
 {{- end }}
