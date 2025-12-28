@@ -12,56 +12,60 @@ This skill guides you through creating a GitHub App and configuring it for works
 
 The happy-little-claude-coders chart uses GitHub Apps for secure, scoped repository access. Each workspace gets automatically refreshed tokens via the sidecar container.
 
-## What You'll Need
+## Before You Start
 
-- GitHub account with permission to create Apps (personal or organization)
-- `gh` CLI installed and authenticated
-- Access to your Kubernetes cluster (for secret creation)
-- The private key PEM file (downloaded during app creation)
+**Ask the user:**
+1. Which repositories should the GitHub App have access to?
+2. Personal account or organization?
+3. Do they want browser-assisted setup or manual setup?
+
+## Setup Options
+
+### Option 1: Browser-Assisted Setup (Recommended)
+
+If the user has browser automation available, this provides a guided experience.
+
+**Using Claude in Chrome:**
+If Claude Code was started with `claude --chrome` or the user has the Claude in Chrome extension:
+- Use the `mcp__claude-in-chrome__*` tools to navigate and assist with form filling
+- Can help click through the GitHub App creation flow
+
+**Using Playwright MCP:**
+Users can install the Playwright MCP server for browser automation:
+
+```bash
+# Add Playwright MCP to Claude Code
+claude mcp add playwright -- npx @anthropic-ai/mcp-client-playwright
+
+# Or with the browser extension (uses existing logged-in sessions):
+# 1. Download extension from https://github.com/anthropics/mcp-client-playwright/releases
+# 2. Load unpacked in chrome://extensions (Developer mode)
+# 3. Configure with --extension flag
+```
+
+### Option 2: Manual Setup
+
+Follow the step-by-step instructions below.
+
+---
 
 ## Step 1: Create the GitHub App
 
-### Option A: Using GitHub Manifest Flow (Recommended)
+### Navigate to GitHub App creation:
+- **Personal account**: `https://github.com/settings/apps/new`
+- **Organization**: `https://github.com/organizations/YOUR_ORG/settings/apps/new`
 
-The manifest flow creates an app from a JSON configuration. You'll need to:
+### Fill in the form:
 
-1. Visit one of these URLs to start app creation:
-   - **Personal account**: `https://github.com/settings/apps/new`
-   - **Organization**: `https://github.com/organizations/YOUR_ORG/settings/apps/new`
+| Field | Value |
+|-------|-------|
+| **GitHub App name** | `hlcc-workspace-auth` (must be unique on GitHub) |
+| **Homepage URL** | `https://github.com/dbirks/happy-little-claude-coders` |
+| **Webhook > Active** | Uncheck (not needed) |
+| **Repository permissions > Contents** | Read-only |
+| **Where can this app be installed?** | Only on this account |
 
-2. Fill in:
-   - **Name**: `hlcc-workspace-auth` (or similar, must be unique on GitHub)
-   - **Homepage URL**: Your repo URL or `https://github.com/dbirks/happy-little-claude-coders`
-   - **Webhook**: Uncheck "Active" (not needed)
-   - **Repository permissions**:
-     - Contents: **Read-only** (required for cloning)
-     - Metadata: Read-only (auto-granted)
-   - **Where can this app be installed?**: "Only on this account"
-
-3. Click "Create GitHub App"
-
-### Option B: Using gh CLI
-
-```bash
-# Create app manifest
-cat > /tmp/github-app-manifest.json << 'EOF'
-{
-  "name": "hlcc-workspace-auth",
-  "url": "https://github.com/dbirks/happy-little-claude-coders",
-  "hook_attributes": {
-    "active": false
-  },
-  "public": false,
-  "default_permissions": {
-    "contents": "read",
-    "metadata": "read"
-  }
-}
-EOF
-
-# Open browser to create app from manifest (you'll need to complete in browser)
-echo "Visit: https://github.com/settings/apps/new?manifest=$(cat /tmp/github-app-manifest.json | jq -c | jq -sRr @uri)"
-```
+Click **Create GitHub App**.
 
 ## Step 2: Generate Private Key
 
@@ -74,12 +78,12 @@ After creating the app:
 
 **Save this file securely!** You cannot regenerate it.
 
-## Step 3: Install the App
+## Step 3: Install the App on Repositories
 
 1. From the app settings page, click **Install App** (left sidebar)
 2. Select your account/organization
 3. Choose **Only select repositories**
-4. Select the repositories your workspaces need access to
+4. Select the repositories the user specified earlier
 5. Click **Install**
 
 ## Step 4: Gather Required Information
@@ -103,18 +107,15 @@ https://github.com/settings/installations/12345678
 
 Or use gh CLI:
 ```bash
-# Get your App ID first, then:
 gh api /user/installations --jq '.installations[] | select(.app_slug == "YOUR_APP_NAME") | .id'
 ```
 
 ### Private Key
-The `.pem` file you downloaded in Step 2.
+The `.pem` file downloaded in Step 2.
 
 ## Step 5: Create Kubernetes Secret
 
-### Preview the command (dry-run)
-
-By default, this shows what WOULD be created without actually creating it:
+### Preview the command (dry-run) - ALWAYS SHOW THIS FIRST
 
 ```bash
 kubectl create secret generic github-app-credentials \
@@ -125,11 +126,9 @@ kubectl create secret generic github-app-credentials \
   --dry-run=client -o yaml
 ```
 
-This outputs the YAML that would be created. Review it carefully.
+**Show the user the output and ask if it looks correct before proceeding.**
 
-### Actually create the secret
-
-When you're ready to create the secret for real, remove `--dry-run=client -o yaml`:
+### Create the secret (only after user confirms)
 
 ```bash
 kubectl create secret generic github-app-credentials \
@@ -142,13 +141,13 @@ kubectl create secret generic github-app-credentials \
 ### Verify the secret
 
 ```bash
-kubectl get secret github-app-credentials -o yaml
-kubectl get secret github-app-credentials -o jsonpath='{.data.app-id}' | base64 -d
+kubectl get secret github-app-credentials -n default
+kubectl get secret github-app-credentials -n default -o jsonpath='{.data.app-id}' | base64 -d
 ```
 
 ## Step 6: Enable GitHub App in HelmRelease
 
-Update your HelmRelease values:
+Update the HelmRelease values:
 
 ```yaml
 values:
@@ -163,35 +162,26 @@ values:
 After deployment, check the sidecar logs:
 
 ```bash
-# Find your workspace pod
+# Find workspace pods
 kubectl get pods -l app.kubernetes.io/name=happy-little-claude-coders
 
 # Check sidecar logs for token refresh
 kubectl logs <pod-name> -c github-token-refresh
 ```
 
-You should see messages like:
+Expected output:
 ```
 Token refreshed successfully for repositories: [your-org/repo1, your-org/repo2]
 ```
 
 ## Troubleshooting
 
-### "Resource not accessible by integration"
-- App doesn't have access to the repository
-- Fix: Add repository to app installation
-
-### "Bad credentials"
-- JWT or installation token expired
-- Fix: Sidecar should auto-refresh; check sidecar logs
-
-### "Not Found" when accessing repository
-- App not installed on that repository
-- Fix: Go to app installation settings, add the repository
-
-### Secret not found
-- `github-app-credentials` secret doesn't exist in the namespace
-- Fix: Create the secret using Step 5
+| Error | Cause | Fix |
+|-------|-------|-----|
+| "Resource not accessible by integration" | App doesn't have repo access | Add repository to app installation |
+| "Bad credentials" | Token expired | Check sidecar logs, should auto-refresh |
+| "Not Found" for repository | App not installed on repo | Add repo in app installation settings |
+| Secret not found | Secret doesn't exist | Create using Step 5 |
 
 ## Reference
 
