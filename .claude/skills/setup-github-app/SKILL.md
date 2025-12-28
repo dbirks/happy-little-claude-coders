@@ -31,16 +31,20 @@ If Claude Code was started with `claude --chrome` or the user has the Claude in 
 - Can help click through the GitHub App creation flow
 
 **Using Playwright MCP:**
-Users can install the Playwright MCP server for browser automation:
+This repo includes a `.mcp.json` config for Playwright MCP with browser extension mode.
 
+**Setup steps:**
+1. Download the Playwright MCP Bridge extension from:
+   https://github.com/microsoft/playwright-mcp/releases
+2. Go to `chrome://extensions`, enable Developer mode
+3. Click "Load unpacked" and select the extension folder
+4. The `.mcp.json` in this repo auto-configures the MCP server
+
+Claude Code will prompt to approve the MCP server on first use.
+
+**Manual CLI setup (alternative):**
 ```bash
-# Add Playwright MCP to Claude Code
-claude mcp add playwright -- npx @anthropic-ai/mcp-client-playwright
-
-# Or with the browser extension (uses existing logged-in sessions):
-# 1. Download extension from https://github.com/anthropics/mcp-client-playwright/releases
-# 2. Load unpacked in chrome://extensions (Developer mode)
-# 3. Configure with --extension flag
+claude mcp add playwright -- pnpx @playwright/mcp@latest --extension
 ```
 
 ### Option 2: Manual Setup
