@@ -31,27 +31,32 @@ const (
 // Tokens are scoped to specific repositories if configured, limiting access
 // to only the workspace's configured repos. This provides workspace isolation
 // when multiple workspaces share the same GitHub App installation.
+//
+// Note: We use AppsTransport (not Transport) because CreateInstallationToken
+// is an app-level endpoint that requires JWT authentication, not installation
+// token authentication.
 type TokenGenerator struct {
 	appID          int64
 	installationID int64
-	transport      *ghinstallation.Transport
+	transport      *ghinstallation.AppsTransport
 	repos          []string
 }
 
 // NewTokenGenerator creates a TokenGenerator from the given configuration.
 //
-// The transport parameter should be created using ghinstallation.New() with
-// the GitHub App credentials. The repos parameter specifies which repositories
-// to scope the generated tokens to (optional).
+// The transport is created using ghinstallation.NewAppsTransport() which
+// provides App-level JWT authentication. This is required because the
+// CreateInstallationToken endpoint is an app-level API that expects JWT
+// authentication, not installation token authentication.
 //
 // Returns an error if the transport cannot be created.
 func NewTokenGenerator(cfg *Config) (*TokenGenerator, error) {
 	// Create GitHub App transport for authentication.
-	// This handles JWT generation and signing automatically.
-	transport, err := ghinstallation.New(
+	// We use NewAppsTransport (not New) because CreateInstallationToken
+	// requires app-level JWT auth, not installation token auth.
+	transport, err := ghinstallation.NewAppsTransport(
 		http.DefaultTransport,
 		cfg.AppID,
-		cfg.InstallationID,
 		cfg.PrivateKey,
 	)
 	if err != nil {
