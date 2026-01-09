@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.3.1...v0.4.0) (2026-01-09)
+
+
+### Features
+
+* auto-start happy CLI on container startup ([92e4b74](https://github.com/dbirks/happy-little-claude-coders/commit/92e4b744bff951f75d202558f4e67d14fc7db550))
+
 ## [0.3.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.3.0...v0.3.1) (2026-01-09)
 
 
