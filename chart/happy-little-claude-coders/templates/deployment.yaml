@@ -143,6 +143,8 @@ spec:
 
           echo "Repository cloning completed successfully"
         env:
+        - name: HOME
+          value: /tmp
         - name: WORKSPACE_REPOS
           valueFrom:
             configMapKeyRef:
