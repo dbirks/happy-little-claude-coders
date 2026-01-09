@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.3.0...v0.3.1) (2026-01-09)
+
+
+### Bug Fixes
+
+* keep workspace container alive with sleep infinity ([666e69f](https://github.com/dbirks/happy-little-claude-coders/commit/666e69fad7f798d16b8e94aa96b43c625a2def06))
+
 ## [0.3.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.2.1...v0.3.0) (2026-01-09)
 
 
