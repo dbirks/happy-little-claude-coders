@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.2.1...v0.3.0) (2026-01-09)
+
+
+### Features
+
+* add Claude Code skill for GitHub App setup ([077f250](https://github.com/dbirks/happy-little-claude-coders/commit/077f25077e47d68c0758df8e117d0a983b948475))
+* add Playwright MCP config for browser-assisted setup ([afbf721](https://github.com/dbirks/happy-little-claude-coders/commit/afbf72190633b7c37ed2948771c81a0a5765c64e))
+* add workflow to build sidecar image on path changes ([bc49a8b](https://github.com/dbirks/happy-little-claude-coders/commit/bc49a8babd334e37f4d3d3bc2b44e81e8ac7d477))
+* enhance GitHub App setup skill with browser automation options ([0972460](https://github.com/dbirks/happy-little-claude-coders/commit/0972460ff849f900bdefbc7cd2a11758d9d083a0))
+
+
+### Bug Fixes
+
+* **chart:** set HOME env var in clone-repos init container ([aa7870b](https://github.com/dbirks/happy-little-claude-coders/commit/aa7870b2b9ae7ae5b49960e3ba941d4157732235))
+* copy all Go source files in sidecar Dockerfile ([54dea13](https://github.com/dbirks/happy-little-claude-coders/commit/54dea13c60b84e1d3f839261da77d5400086a17d))
+* update ghinstallation to v2.17.0 and go-github to v75 ([9452ccd](https://github.com/dbirks/happy-little-claude-coders/commit/9452ccd9b6acdf87878daea45995bc0aefaf6825))
+* use alpine base for shell support in init containers ([8e44d84](https://github.com/dbirks/happy-little-claude-coders/commit/8e44d847a7f8e3bab9f2dd755722a2a179198524))
+* use AppsTransport for CreateInstallationToken endpoint ([3819e0c](https://github.com/dbirks/happy-little-claude-coders/commit/3819e0c4bd4f5dc1723e61ff2c90f963f1ce1263))
+
 ## [0.2.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.2.0...v0.2.1) (2025-12-27)
 
 
