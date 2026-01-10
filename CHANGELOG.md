@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.5.0...v0.6.0) (2026-01-10)
+
+
+### Features
+
+* use --no-qr flag for text-based pairing code ([21d17b6](https://github.com/dbirks/happy-little-claude-coders/commit/21d17b6891587621d22f15669a448e50dbf32ced))
+
 ## [0.5.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.4.1...v0.5.0) (2026-01-10)
 
 
