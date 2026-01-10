@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.4.0...v0.4.1) (2026-01-10)
+
+
+### Performance Improvements
+
+* use pre-installed happy-coder instead of dlx ([d3c8a48](https://github.com/dbirks/happy-little-claude-coders/commit/d3c8a48cd27977b651958ef91cbcca01abdc89bf))
+
 ## [0.4.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.3.1...v0.4.0) (2026-01-09)
 
 
