@@ -63,4 +63,4 @@ WORKDIR /workspace
 
 # Default entrypoint
 ENTRYPOINT ["/scripts/entrypoint.sh"]
-CMD ["pnpm", "--package=happy-coder@latest", "dlx", "happy"]
+CMD ["happy"]
