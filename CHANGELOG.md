@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.4.1...v0.5.0) (2026-01-10)
+
+
+### Features
+
+* **chart:** add shared PVC for happy CLI config ([790a788](https://github.com/dbirks/happy-little-claude-coders/commit/790a788b6434a75b1bf2475dd3bb1d9e830853fb))
+
 ## [0.4.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.4.0...v0.4.1) (2026-01-10)
 
 
