@@ -1,3 +1,21 @@
+{{- if .Values.happy.sharedConfig }}
+---
+# Shared PVC for ~/.happy across all workspaces
+# Allows QR code auth to be scanned once and used by all workspaces
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "happy-little-claude-coders.fullname" . }}-happy-config
+  labels:
+    {{- include "happy-little-claude-coders.labels" . | nindent 4 }}
+    app.kubernetes.io/component: happy-config
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.happy.configPvcSize }}
+{{- end }}
 {{- range $workspace := .Values.workspaces }}
 {{- $workspaceName := $workspace.name }}
 {{- if $workspace.persistent }}

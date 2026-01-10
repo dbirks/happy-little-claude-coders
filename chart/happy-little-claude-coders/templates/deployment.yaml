@@ -208,6 +208,10 @@ spec:
           mountPath: /var/run/github
           readOnly: true
         {{- end }}
+        {{- if $.Values.happy.sharedConfig }}
+        - name: happy-config
+          mountPath: /home/coder/.happy
+        {{- end }}
         resources:
           {{- toYaml $workspaceResources | nindent 10 }}
       {{- if $.Values.githubApp.enabled }}
@@ -280,6 +284,11 @@ spec:
             path: installation-id
           - key: private-key
             path: private-key
+      {{- end }}
+      {{- if $.Values.happy.sharedConfig }}
+      - name: happy-config
+        persistentVolumeClaim:
+          claimName: {{ include "happy-little-claude-coders.fullname" $ }}-happy-config
       {{- end }}
       {{- with $.Values.nodeSelector }}
       nodeSelector:

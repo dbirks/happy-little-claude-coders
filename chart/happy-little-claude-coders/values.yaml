@@ -66,6 +66,14 @@ claude:
   # PVC size for ~/.claude/ persistence per workspace
   configPvcSize: 100Mi
 
+# Happy CLI configuration (mobile app integration)
+happy:
+  # Enable shared ~/.happy persistence across all workspaces
+  # This allows QR code auth to be shared - scan once, use everywhere
+  sharedConfig: true
+  # PVC size for shared ~/.happy directory
+  configPvcSize: 100Mi
+
 # Default resource limits and requests for workspaces
 # Can be overridden per workspace in workspaces[].resources
 resources:
