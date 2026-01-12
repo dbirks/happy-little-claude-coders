@@ -13,11 +13,11 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Install GitHub CLI
+# Install GitHub CLI and expect
 RUN (curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg) \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list \
     && apt-get update \
-    && apt-get install -y gh \
+    && apt-get install -y gh expect \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Claude Code CLI
@@ -42,8 +42,9 @@ RUN mkdir -p /workspace /scripts
 # Copy entrypoint and helper scripts
 COPY scripts/entrypoint.sh /scripts/entrypoint.sh
 COPY scripts/clone-repos.sh /usr/local/bin/clone-repos
+COPY scripts/run-happy.exp /usr/local/bin/run-happy
 
-RUN chmod +x /scripts/entrypoint.sh /usr/local/bin/clone-repos
+RUN chmod +x /scripts/entrypoint.sh /usr/local/bin/clone-repos /usr/local/bin/run-happy
 
 # Create non-root user with UID 1001 (following Bitnami pattern)
 # Using 1001 instead of 1000 to avoid conflicts with host users
@@ -63,10 +64,5 @@ WORKDIR /workspace
 
 # Default entrypoint
 ENTRYPOINT ["/scripts/entrypoint.sh"]
-# Run happy with pseudo-TTY via script command
-# Auto-select option 1 (Mobile App) by piping "1"
-# -q: quiet (no "Script started" messages)
-# -e: return exit code of child process
-# -f: flush output immediately (real-time logs)
-# -c: run command instead of shell
-CMD ["sh", "-c", "echo '1' | script -qefc 'happy --no-qr' /dev/null"]
+# Run happy with expect script to auto-select Mobile App
+CMD ["run-happy"]
