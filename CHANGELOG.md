@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.6.0...v0.7.0) (2026-01-12)
+
+
+### Features
+
+* run happy CLI with pseudo-TTY via script command ([09dd813](https://github.com/dbirks/happy-little-claude-coders/commit/09dd813a6f5fc90164c339dbd5a308516c0b3400))
+
 ## [0.6.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.5.0...v0.6.0) (2026-01-10)
 
 
