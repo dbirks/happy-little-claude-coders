@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.9.1...v0.10.0) (2026-01-12)
+
+
+### Features
+
+* implement retry loop for happy CLI authentication ([d70fa0e](https://github.com/dbirks/happy-little-claude-coders/commit/d70fa0ec00e26e51496e553a2d8fe7537e6d3e3c))
+
+
+### Bug Fixes
+
+* use happy daemon start-sync for proper background operation ([ed4f312](https://github.com/dbirks/happy-little-claude-coders/commit/ed4f312be40ab7c7c437dd92a3980b78b1a2654e))
+
 ## [0.9.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.9.0...v0.9.1) (2026-01-12)
 
 
