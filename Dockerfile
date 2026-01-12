@@ -64,8 +64,9 @@ WORKDIR /workspace
 # Default entrypoint
 ENTRYPOINT ["/scripts/entrypoint.sh"]
 # Run happy with pseudo-TTY via script command
+# Auto-select option 1 (Mobile App) by piping "1"
 # -q: quiet (no "Script started" messages)
 # -e: return exit code of child process
 # -f: flush output immediately (real-time logs)
 # -c: run command instead of shell
-CMD ["script", "-qefc", "happy --no-qr", "/dev/null"]
+CMD ["sh", "-c", "echo '1' | script -qefc 'happy --no-qr' /dev/null"]
