@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.8.0...v0.9.0) (2026-01-12)
+
+
+### Features
+
+* use expect script to auto-select mobile app auth ([970be5f](https://github.com/dbirks/happy-little-claude-coders/commit/970be5f605f9862725b1a49f7fcca5efc06f3995))
+
 ## [0.8.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.7.0...v0.8.0) (2026-01-12)
 
 
