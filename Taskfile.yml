@@ -1,0 +1,159 @@
+version: '3'
+
+vars:
+  CLUSTER_NAME: happy-test
+  NAMESPACE: default
+  CHART_PATH: ./chart/happy-little-claude-coders
+  VALUES_FILE: ./local-test/values.yaml
+
+tasks:
+  # Create Kind cluster
+  up:
+    desc: Create Kind cluster and install happy-little-claude-coders
+    cmds:
+      - task: cluster:create
+      - task: chart:install
+      - task: status
+
+  # Delete Kind cluster
+  down:
+    desc: Delete Kind cluster
+    cmds:
+      - kind delete cluster --name {{.CLUSTER_NAME}}
+
+  # Create the Kind cluster
+  cluster:create:
+    desc: Create Kind cluster
+    cmds:
+      - |
+        echo "Creating Kind cluster: {{.CLUSTER_NAME}}..."
+        kind create cluster --name {{.CLUSTER_NAME}}
+      - kubectl cluster-info --context kind-{{.CLUSTER_NAME}}
+    status:
+      - kind get clusters | grep -q {{.CLUSTER_NAME}}
+
+  # Install the Helm chart
+  chart:install:
+    desc: Install happy-little-claude-coders Helm chart
+    cmds:
+      - echo "Installing Helm chart from {{.CHART_PATH}}..."
+      - helm upgrade --install happy-little-claude-coders {{.CHART_PATH}}
+          --values {{.VALUES_FILE}}
+          --namespace {{.NAMESPACE}}
+          --create-namespace
+          --wait
+          --timeout 5m
+      - echo "Chart installed successfully!"
+
+  # Uninstall the Helm chart
+  chart:uninstall:
+    desc: Uninstall happy-little-claude-coders Helm chart
+    cmds:
+      - helm uninstall happy-little-claude-coders --namespace {{.NAMESPACE}}
+
+  # Show status
+  status:
+    desc: Show cluster and deployment status
+    cmds:
+      - echo "=== Cluster Info ==="
+      - kubectl cluster-info --context kind-{{.CLUSTER_NAME}}
+      - echo ""
+      - echo "=== Pods ==="
+      - kubectl get pods -n {{.NAMESPACE}} -l app.kubernetes.io/name=happy-little-claude-coders
+      - echo ""
+      - echo "=== Deployments ==="
+      - kubectl get deployments -n {{.NAMESPACE}} -l app.kubernetes.io/name=happy-little-claude-coders
+      - echo ""
+      - echo "=== HelmRelease (if using Flux) ==="
+      - kubectl get helmrelease -n {{.NAMESPACE}} 2>/dev/null || echo "No Flux HelmReleases found (expected for local testing)"
+
+  # Show logs from test workspace
+  logs:
+    desc: Show logs from test-workspace pod
+    cmds:
+      - kubectl logs -n {{.NAMESPACE}} -l app.kubernetes.io/instance=test-workspace -c workspace --tail=50 -f
+
+  # Exec into test workspace
+  exec:
+    desc: Exec into test-workspace pod
+    cmds:
+      - kubectl exec -it -n {{.NAMESPACE}} deployment/happy-little-claude-coders-test-workspace -c workspace -- bash
+
+  # Run happy CLI authentication in test workspace
+  auth:
+    desc: Run happy CLI authentication interactively
+    cmds:
+      - kubectl exec -it -n {{.NAMESPACE}} deployment/happy-little-claude-coders-test-workspace -c workspace -- happy --no-qr
+
+  # Full test cycle
+  test:
+    desc: Run full test cycle (up, verify, down)
+    cmds:
+      - task: up
+      - echo ""
+      - echo "=== Waiting 10 seconds for pods to stabilize ==="
+      - sleep 10
+      - task: verify
+      - echo ""
+      - echo "=== Test completed! Run 'task down' to clean up ==="
+
+  # Verify deployment
+  verify:
+    desc: Verify deployment is working
+    cmds:
+      - echo "=== Verifying Deployment ==="
+      - |
+        # Check pods are running
+        PODS=$(kubectl get pods -n {{.NAMESPACE}} -l app.kubernetes.io/name=happy-little-claude-coders -o jsonpath='{.items[*].metadata.name}')
+        if [ -z "$PODS" ]; then
+          echo "❌ No pods found!"
+          exit 1
+        fi
+        echo "✓ Found pods: $PODS"
+
+        # Check pod status
+        for pod in $PODS; do
+          STATUS=$(kubectl get pod $pod -n {{.NAMESPACE}} -o jsonpath='{.status.phase}')
+          echo "  Pod $pod: $STATUS"
+          if [ "$STATUS" != "Running" ]; then
+            echo "❌ Pod $pod is not running!"
+            kubectl describe pod $pod -n {{.NAMESPACE}}
+            exit 1
+          fi
+        done
+        echo "✓ All pods are running"
+
+        # Check logs for auth message
+        echo ""
+        echo "=== Checking logs for authentication prompt ==="
+        kubectl logs -n {{.NAMESPACE}} deployment/happy-little-claude-coders-test-workspace -c workspace --tail=20 | grep -q "Happy CLI Authentication Required" && echo "✓ Auth prompt found in logs" || echo "⚠ Auth prompt not found (may already be authenticated)"
+
+        # Show recent logs
+        echo ""
+        echo "=== Recent logs from test-workspace ==="
+        kubectl logs -n {{.NAMESPACE}} deployment/happy-little-claude-coders-test-workspace -c workspace --tail=20
+
+  # Rebuild and update
+  rebuild:
+    desc: Rebuild Docker image and update deployment
+    cmds:
+      - echo "Building Docker image..."
+      - docker build -t ghcr.io/dbirks/happy-little-claude-coders:local .
+      - echo "Loading image into Kind cluster..."
+      - kind load docker-image ghcr.io/dbirks/happy-little-claude-coders:local --name {{.CLUSTER_NAME}}
+      - echo "Updating values to use local image..."
+      - helm upgrade happy-little-claude-coders {{.CHART_PATH}}
+          --set image.tag=local
+          --set image.pullPolicy=Never
+          --values {{.VALUES_FILE}}
+          --namespace {{.NAMESPACE}}
+          --wait
+      - echo "Restarting pods..."
+      - kubectl rollout restart deployment -n {{.NAMESPACE}} -l app.kubernetes.io/name=happy-little-claude-coders
+      - kubectl rollout status deployment -n {{.NAMESPACE}} -l app.kubernetes.io/name=happy-little-claude-coders
+
+  # Help
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list

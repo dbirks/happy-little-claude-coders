@@ -1,0 +1,40 @@
+# Local Kind cluster test values
+# Simplified configuration for local testing without external dependencies
+
+image:
+  repository: ghcr.io/dbirks/happy-little-claude-coders
+  tag: "0.10.0"
+  pullPolicy: IfNotPresent
+
+# Test with a single workspace
+workspaces:
+  - name: test-workspace
+    repos:
+      - "https://github.com/dbirks/happy-little-claude-coders.git"
+    storageSize: 2Gi
+    persistent: false  # Use emptyDir for local testing
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+
+# Global git configuration
+git:
+  userName: "Test User"
+  userEmail: "test@example.com"
+
+# Disable GitHub App authentication for local testing
+githubApp:
+  enabled: false
+
+# Disable Claude Code authentication for local testing
+# (focus on testing happy CLI only)
+claude:
+  secretName: ""
+
+# Disable Happy CLI shared config for local testing
+happy:
+  sharedConfig: false
