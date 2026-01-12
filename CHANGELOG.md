@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.7.0...v0.8.0) (2026-01-12)
+
+
+### Features
+
+* auto-select mobile app auth in happy CLI ([cbbef0a](https://github.com/dbirks/happy-little-claude-coders/commit/cbbef0a1cbc7b2a7654e69de9367186e56e08b1b))
+
 ## [0.7.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.6.0...v0.7.0) (2026-01-12)
 
 
