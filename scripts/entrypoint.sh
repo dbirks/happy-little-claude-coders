@@ -100,11 +100,11 @@ fi
 if [ -f /home/coder/.happy/access.key ]; then
     echo "✓ Happy CLI authenticated"
 
-    # Start happy CLI in background (it will run as daemon)
+    # Start happy daemon in background for continuous relay operation
     (
-        echo "Starting Happy CLI..."
-        happy --no-qr &
-        echo "✓ Happy CLI started (PID: $!)"
+        echo "Starting Happy CLI daemon..."
+        happy daemon start-sync &
+        echo "✓ Happy CLI daemon started (PID: $!)"
     ) &
 else
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
@@ -131,8 +131,8 @@ else
         done
         echo "" >&2
         echo "✓ Happy CLI authenticated - starting daemon..." >&2
-        happy --no-qr &
-        echo "✓ Happy CLI started (PID: $!)" >&2
+        happy daemon start-sync &
+        echo "✓ Happy CLI daemon started (PID: $!)" >&2
     ) &
 fi
 
