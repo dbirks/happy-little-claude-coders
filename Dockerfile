@@ -64,5 +64,5 @@ WORKDIR /workspace
 
 # Default entrypoint
 ENTRYPOINT ["/scripts/entrypoint.sh"]
-# Run happy with expect script (auto-selects Mobile App, stays alive)
-CMD ["run-happy"]
+# Keep container alive - entrypoint.sh handles starting happy CLI
+CMD ["sleep", "infinity"]

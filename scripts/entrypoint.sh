@@ -96,5 +96,45 @@ else
     fi
 fi
 
+# Check for Happy CLI authentication
+if [ -f /home/coder/.happy/access.key ]; then
+    echo "✓ Happy CLI authenticated"
+
+    # Start happy CLI in background (it will run as daemon)
+    (
+        echo "Starting Happy CLI..."
+        happy --no-qr &
+        echo "✓ Happy CLI started (PID: $!)"
+    ) &
+else
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "  Happy CLI Authentication Required" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "" >&2
+    echo "To authenticate with Happy CLI, run:" >&2
+    echo "  $ kubectl exec -it deployment/happy-little-claude-coders-WORKSPACE -- bash" >&2
+    echo "  $ happy --no-qr" >&2
+    echo "" >&2
+    echo "Then:" >&2
+    echo "  1. Select option 1 (Mobile App)" >&2
+    echo "  2. Scan the pairing code in your Happy mobile app" >&2
+    echo "  3. Exit the shell (credentials persist)" >&2
+    echo "" >&2
+    echo "After authentication, Happy CLI will auto-start in the background." >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+
+    # Start background watcher that auto-starts happy after authentication
+    (
+        echo "Waiting for Happy CLI authentication..." >&2
+        while [ ! -f /home/coder/.happy/access.key ]; do
+            sleep 5
+        done
+        echo "" >&2
+        echo "✓ Happy CLI authenticated - starting daemon..." >&2
+        happy --no-qr &
+        echo "✓ Happy CLI started (PID: $!)" >&2
+    ) &
+fi
+
 # Execute the provided command or start a shell
 exec "$@"
