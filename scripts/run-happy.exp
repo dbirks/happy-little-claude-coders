@@ -1,7 +1,7 @@
 #!/usr/bin/expect -f
 
 # Run happy CLI and auto-select Mobile App (option 1)
-set timeout -1
+set timeout 30
 
 # Spawn happy with --no-qr flag
 spawn happy --no-qr
@@ -9,17 +9,29 @@ spawn happy --no-qr
 # Wait for the authentication menu
 expect {
     "How would you like to authenticate?" {
-        # Send "1" to select Mobile App option
+        # Send "1" followed by Enter
         send "1\r"
-        # Continue running and forward all output
-        interact
+        # Wait a moment for the selection to process
+        sleep 1
     }
     timeout {
         puts "Timeout waiting for authentication prompt"
         exit 1
     }
     eof {
-        puts "Happy exited unexpectedly"
+        puts "Happy exited unexpectedly before showing menu"
         exit 1
+    }
+}
+
+# Now continue forwarding all output and keep running
+expect {
+    eof {
+        # Happy exited normally
+        exit 0
+    }
+    timeout {
+        # No more output, but keep waiting
+        exp_continue
     }
 }
