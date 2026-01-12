@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.9.0...v0.9.1) (2026-01-12)
+
+
+### Bug Fixes
+
+* expect script now stays alive indefinitely ([13d6a69](https://github.com/dbirks/happy-little-claude-coders/commit/13d6a69f6a467ce3480210c41b0049c0b1f85990))
+* simplify happy launch with unbuffer ([cb55356](https://github.com/dbirks/happy-little-claude-coders/commit/cb55356ed19fec57be07e30e1d576dc3cbc85673))
+
 ## [0.9.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.8.0...v0.9.0) (2026-01-12)
 
 
