@@ -63,4 +63,9 @@ WORKDIR /workspace
 
 # Default entrypoint
 ENTRYPOINT ["/scripts/entrypoint.sh"]
-CMD ["happy", "--no-qr"]
+# Run happy with pseudo-TTY via script command
+# -q: quiet (no "Script started" messages)
+# -e: return exit code of child process
+# -f: flush output immediately (real-time logs)
+# -c: run command instead of shell
+CMD ["script", "-qefc", "happy --no-qr", "/dev/null"]
