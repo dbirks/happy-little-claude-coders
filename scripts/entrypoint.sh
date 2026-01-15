@@ -96,6 +96,18 @@ else
     fi
 fi
 
+# Setup Claude Code OAuth token if provided
+if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+    echo "Setting up Claude Code OAuth token..."
+    mkdir -p /home/coder/.config/claude
+    cat > /home/coder/.config/claude/config.json <<EOF
+{
+  "oauthToken": "$CLAUDE_CODE_OAUTH_TOKEN"
+}
+EOF
+    echo "✓ Claude Code OAuth token configured"
+fi
+
 # Check for Happy CLI authentication
 if [ -f /home/coder/.happy/access.key ]; then
     echo "✓ Happy CLI authenticated"
