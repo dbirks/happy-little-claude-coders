@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.10.0...v0.11.0) (2026-01-15)
+
+
+### Features
+
+* add local Kind cluster testing setup ([b1ae23c](https://github.com/dbirks/happy-little-claude-coders/commit/b1ae23c2221400f6074f0a63f91bfa60b17c7045))
+* install Claude Code via npm and auto-start with Happy daemon ([df2eb90](https://github.com/dbirks/happy-little-claude-coders/commit/df2eb904f5ae6c47774c56fe5d3cde3b27d08604))
+
 ## [0.10.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.9.1...v0.10.0) (2026-01-12)
 
 
