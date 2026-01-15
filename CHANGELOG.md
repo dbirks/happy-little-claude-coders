@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/dbirks/happy-little-claude-coders/compare/v0.11.1...v0.11.2) (2026-01-15)
+
+
+### Bug Fixes
+
+* remove redundant claude startup, happy daemon manages it ([e166f16](https://github.com/dbirks/happy-little-claude-coders/commit/e166f16687db9e08658056dbbc9b4629e009e17c))
+
 ## [0.11.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.11.0...v0.11.1) (2026-01-15)
 
 
