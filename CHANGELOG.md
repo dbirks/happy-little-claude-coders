@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/dbirks/happy-little-claude-coders/compare/v0.11.2...v0.11.3) (2026-01-15)
+
+
+### Bug Fixes
+
+* write Claude OAuth token to config file for Happy daemon ([ad40799](https://github.com/dbirks/happy-little-claude-coders/commit/ad4079982efedd3ab4a436c9cea0b8afd72f43e2))
+
 ## [0.11.2](https://github.com/dbirks/happy-little-claude-coders/compare/v0.11.1...v0.11.2) (2026-01-15)
 
 
