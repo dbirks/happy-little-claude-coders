@@ -3,7 +3,7 @@
 
 image:
   repository: ghcr.io/dbirks/happy-little-claude-coders
-  tag: "0.10.0"
+  tag: "0.11.0"
   pullPolicy: IfNotPresent
 
 # Test with a single workspace
@@ -35,6 +35,7 @@ githubApp:
 claude:
   secretName: ""
 
-# Disable Happy CLI shared config for local testing
+# Disable Happy CLI shared config for Kind (local-path doesn't support RWX)
+# Each workspace will have its own happy config
 happy:
   sharedConfig: false

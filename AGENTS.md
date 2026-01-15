@@ -123,6 +123,47 @@ Add to MCP config (e.g., `~/.config/claude/config.json`):
 
 Then use `mcp__beads__*` functions instead of CLI commands.
 
+### Claude Code Integration and Automatic Service Startup
+
+This project integrates Claude Code with the Happy daemon for seamless AI-powered development workflows.
+
+**What's Included:**
+- Claude Code is installed via npm (`@anthropic-ai/claude-code`, compatible with Claude Code versions)
+- Happy daemon and Claude Code automatically start after authentication
+- One-time authentication step via `happy --no-qr`
+- Credentials persist on PVC for automatic service startup on pod restart
+- Background authentication watcher polls every 5 seconds for completion
+
+**Getting Started:**
+
+1. **Authenticate Once** (first time in pod):
+   ```bash
+   happy --no-qr
+   ```
+   Follow the prompts to authenticate with your credentials.
+
+2. **Services Start Automatically**:
+   Once authenticated, the pod's entrypoint automatically starts:
+   - Happy daemon (credentials persisted on PVC)
+   - Claude Code service
+   - Background watcher monitoring authentication
+
+3. **On Pod Restart**:
+   Both services automatically start without requiring re-authentication, thanks to persisted credentials.
+
+**Requirements:**
+- Happy CLI version 0.13.0 or later
+- Authentication credentials stored on persistent volume claim (PVC)
+- Node.js environment for Claude Code npm package
+
+**Architecture:**
+- Entrypoint script detects authentication status
+- Background watcher polls auth completion every 5 seconds (non-blocking)
+- Both services start concurrently once auth is confirmed
+- Services remain running for the duration of the pod
+
+This setup enables AI agents and developers to use Claude Code seamlessly within the Happy environment without managing multiple authentication flows.
+
 ### Managing AI-Generated Planning Documents
 
 AI assistants often create planning and design documents during development:
