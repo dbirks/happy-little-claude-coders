@@ -12,7 +12,7 @@ workspaces:
     repos:
       - "https://github.com/dbirks/happy-little-claude-coders.git"
     storageSize: 2Gi
-    persistent: false  # Use emptyDir for local testing
+    persistent: true  # Use PVC to preserve happy auth across pod restarts
     resources:
       limits:
         cpu: 1000m
