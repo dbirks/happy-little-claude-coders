@@ -100,20 +100,13 @@ fi
 if [ -f /home/coder/.happy/access.key ]; then
     echo "✓ Happy CLI authenticated"
 
-    # Start happy daemon and claude-code in background
+    # Start happy daemon in background (manages Claude Code sessions)
     (
         echo "Starting Happy CLI daemon..."
         happy daemon start-sync &
         HAPPY_PID=$!
         echo "✓ Happy CLI daemon started (PID: $HAPPY_PID)"
-
-        # Wait a moment for happy daemon to initialize
-        sleep 2
-
-        echo "Starting Claude Code..."
-        claude-code &
-        CLAUDE_PID=$!
-        echo "✓ Claude Code started (PID: $CLAUDE_PID)"
+        echo "✓ Happy daemon manages Claude Code sessions"
     ) &
 else
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
@@ -129,7 +122,7 @@ else
     echo "  2. Scan the pairing code in your Happy mobile app" >&2
     echo "  3. Exit the shell (credentials persist)" >&2
     echo "" >&2
-    echo "After authentication, Happy CLI and Claude Code will auto-start." >&2
+    echo "After authentication, Happy daemon will auto-start (manages Claude Code)." >&2
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
 
     # Start background watcher that auto-starts happy after authentication
@@ -144,13 +137,7 @@ else
         happy daemon start-sync &
         HAPPY_PID=$!
         echo "✓ Happy CLI daemon started (PID: $HAPPY_PID)" >&2
-
-        # Wait a moment for happy daemon to initialize
-        sleep 2
-
-        claude-code &
-        CLAUDE_PID=$!
-        echo "✓ Claude Code started (PID: $CLAUDE_PID)" >&2
+        echo "✓ Happy daemon manages Claude Code sessions" >&2
     ) &
 fi
 
