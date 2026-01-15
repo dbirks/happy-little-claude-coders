@@ -66,5 +66,25 @@ spec:
   resources:
     requests:
       storage: {{ $.Values.claude.configPvcSize }}
+{{- if $.Values.happy.perWorkspaceConfig }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}-happy-config
+  labels:
+    {{- include "happy-little-claude-coders.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: workspace
+    workspace: {{ $workspaceName }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if $.Values.happy.configStorageClass }}
+  storageClassName: {{ $.Values.happy.configStorageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $.Values.happy.configPvcSize }}
+{{- end }}
 {{- end }}
 {{- end }}

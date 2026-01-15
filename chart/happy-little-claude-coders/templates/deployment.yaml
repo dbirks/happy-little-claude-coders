@@ -208,7 +208,7 @@ spec:
           mountPath: /var/run/github
           readOnly: true
         {{- end }}
-        {{- if $.Values.happy.sharedConfig }}
+        {{- if or $.Values.happy.sharedConfig $.Values.happy.perWorkspaceConfig }}
         - name: happy-config
           mountPath: /home/coder/.happy
         {{- end }}
@@ -289,6 +289,10 @@ spec:
       - name: happy-config
         persistentVolumeClaim:
           claimName: {{ include "happy-little-claude-coders.fullname" $ }}-happy-config
+      {{- else if $.Values.happy.perWorkspaceConfig }}
+      - name: happy-config
+        persistentVolumeClaim:
+          claimName: {{ include "happy-little-claude-coders.fullname" $ }}-{{ $workspaceName }}-happy-config
       {{- end }}
       {{- with $.Values.nodeSelector }}
       nodeSelector:

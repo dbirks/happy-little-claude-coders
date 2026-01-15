@@ -70,9 +70,20 @@ claude:
 happy:
   # Enable shared ~/.happy persistence across all workspaces
   # This allows QR code auth to be shared - scan once, use everywhere
+  # Requires ReadWriteMany storage (NFS, etc.)
   sharedConfig: true
-  # PVC size for shared ~/.happy directory
+
+  # Enable per-workspace ~/.happy persistence
+  # Each workspace gets its own PVC - requires auth per workspace
+  # Uses ReadWriteOnce storage (works with most storage classes)
+  # NOTE: Only one of sharedConfig or perWorkspaceConfig should be true
+  perWorkspaceConfig: false
+
+  # PVC size for happy config directory (shared or per-workspace)
   configPvcSize: 100Mi
+
+  # Storage class for Happy config PVCs (leave empty for default)
+  configStorageClass: ""
 
 # Default resource limits and requests for workspaces
 # Can be overridden per workspace in workspaces[].resources
