@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.11.3...v0.12.0) (2026-01-15)
+
+
+### Features
+
+* add per-workspace Happy config PVC support for RWO storage ([1525240](https://github.com/dbirks/happy-little-claude-coders/commit/15252400bf41f84b94b4ba27b72bbb788840c2cf))
+
 ## [0.11.3](https://github.com/dbirks/happy-little-claude-coders/compare/v0.11.2...v0.11.3) (2026-01-15)
 
 
