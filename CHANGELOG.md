@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.11.0...v0.11.1) (2026-01-15)
+
+
+### Bug Fixes
+
+* switch image build from pnpm to npm and bump chart to v0.11.1 ([74f5c7d](https://github.com/dbirks/happy-little-claude-coders/commit/74f5c7dfb8c2cc31327208dcd6f3747246adcbd3))
+
 ## [0.11.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.10.0...v0.11.0) (2026-01-15)
 
 
