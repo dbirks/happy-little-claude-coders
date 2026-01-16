@@ -1,6 +1,6 @@
 {
   "name": "happy-little-claude-coders",
-  "version": "0.12.4",
+  "version": "0.12.5",
   "description": "Containerized AI coding workspaces with Claude Code and Happy CLI",
   "private": true,
   "engines": {
