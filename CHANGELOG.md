@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.5](https://github.com/dbirks/happy-little-claude-coders/compare/v0.12.4...v0.12.5) (2026-01-16)
+
+
+### Bug Fixes
+
+* handle workspace PVC with non-git content in init container ([dd6b0c2](https://github.com/dbirks/happy-little-claude-coders/commit/dd6b0c29c91b80ed8229226ccf0e47e363fcbf65))
+
 ## [0.12.4](https://github.com/dbirks/happy-little-claude-coders/compare/v0.12.3...v0.12.4) (2026-01-16)
 
 
