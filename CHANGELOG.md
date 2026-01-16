@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.4](https://github.com/dbirks/happy-little-claude-coders/compare/v0.12.3...v0.12.4) (2026-01-16)
+
+
+### Bug Fixes
+
+* handle workspace PVC with non-git content in clone-repos ([09065fd](https://github.com/dbirks/happy-little-claude-coders/commit/09065fdd5f73959e8c29f4c1a569999cb397d52b))
+
 ## [0.12.2](https://github.com/dbirks/happy-little-claude-coders/compare/v0.12.1...v0.12.2) (2026-01-16)
 
 
