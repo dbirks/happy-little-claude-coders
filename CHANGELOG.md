@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.2](https://github.com/dbirks/happy-little-claude-coders/compare/v0.12.1...v0.12.2) (2026-01-16)
+
+
+### Bug Fixes
+
+* skip Claude Code theme selection and onboarding prompts ([74da410](https://github.com/dbirks/happy-little-claude-coders/commit/74da41053d0f41136cd109f3147f13f23686e7d8))
+
 ## [0.12.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.12.0...v0.12.1) (2026-01-16)
 
 
