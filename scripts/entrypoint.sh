@@ -96,6 +96,16 @@ else
     fi
 fi
 
+# Setup Claude Code configuration to skip onboarding prompts
+echo "Configuring Claude Code defaults..."
+cat > /home/coder/.claude.json <<EOF
+{
+  "hasCompletedOnboarding": true,
+  "theme": "dark"
+}
+EOF
+echo "✓ Claude Code onboarding skipped (theme: dark)"
+
 # Setup Claude Code OAuth token if provided
 if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
     echo "Setting up Claude Code OAuth token..."
