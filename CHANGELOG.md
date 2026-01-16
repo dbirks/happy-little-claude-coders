@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/dbirks/happy-little-claude-coders/compare/v0.12.0...v0.12.1) (2026-01-16)
+
+
+### Bug Fixes
+
+* create Happy config PVCs independent of workspace.persistent ([6ce34d3](https://github.com/dbirks/happy-little-claude-coders/commit/6ce34d39a5e24ea64434fe1a7b8957eb65778faf))
+
 ## [0.12.0](https://github.com/dbirks/happy-little-claude-coders/compare/v0.11.3...v0.12.0) (2026-01-15)
 
 
