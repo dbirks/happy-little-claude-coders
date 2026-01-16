@@ -16,6 +16,14 @@ REPO_COUNT=$(echo "$WORKSPACE_REPOS" | wc -w)
 if [ "$REPO_COUNT" -eq 1 ]; then
     # Single repo: clone directly into /workspace
     if [ ! -d "/workspace/.git" ]; then
+        # Check if /workspace has content (excluding lost+found which is common in empty PVCs)
+        if [ -n "$(ls -A /workspace 2>/dev/null | grep -v '^lost+found$')" ]; then
+            echo "⚠ Warning: /workspace exists with content but is not a git repository"
+            echo "   This usually means a previous clone failed. Cleaning up..."
+            # Preserve lost+found if it exists (required by some storage systems)
+            find /workspace -mindepth 1 -maxdepth 1 ! -name 'lost+found' -exec rm -rf {} +
+            echo "   Cleaned non-git content from /workspace"
+        fi
         echo "Cloning single repository into /workspace..."
         git clone "$WORKSPACE_REPOS" /workspace
         echo "✓ Repository cloned successfully"

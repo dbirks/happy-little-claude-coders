@@ -1,12 +1,5 @@
 # Changelog
 
-## [0.12.3](https://github.com/dbirks/happy-little-claude-coders/compare/v0.12.2...v0.12.3) (2026-01-16)
-
-
-### Bug Fixes
-
-* write Claude OAuth token to correct location (~/.claude/.credentials.json) ([f980bc0](https://github.com/dbirks/happy-little-claude-coders/commit/f980bc07126f26d085fac3c142d2c5588cb61779))
-
 ## [0.12.2](https://github.com/dbirks/happy-little-claude-coders/compare/v0.12.1...v0.12.2) (2026-01-16)
 
 
