@@ -109,8 +109,8 @@ echo "✓ Claude Code onboarding skipped (theme: dark)"
 # Setup Claude Code OAuth token if provided
 if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
     echo "Setting up Claude Code OAuth token..."
-    mkdir -p /home/coder/.config/claude
-    cat > /home/coder/.config/claude/config.json <<EOF
+    mkdir -p /home/coder/.claude
+    cat > /home/coder/.claude/.credentials.json <<EOF
 {
   "oauthToken": "$CLAUDE_CODE_OAUTH_TOKEN"
 }
